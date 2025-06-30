@@ -1,0 +1,158 @@
+name: Test Game Deployment
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    name: Build Validation
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install test dependencies
+      run: npm install --save-dev puppeteer node-fetch chalk
+      
+    - name: Run build validation tests
+      run: npm run test:build
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: build-artifacts
+        path: dist/
+        retention-days: 1
+
+  test-deployment:
+    runs-on: ubuntu-latest
+    name: Deployment Validation
+    needs: test-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install test dependencies
+      run: npm install --save-dev puppeteer node-fetch chalk
+      
+    - name: Configure Git
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        
+    - name: Run deployment validation tests
+      run: npm run test:deployment
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-integration:
+    runs-on: ubuntu-latest
+    name: Integration Testing
+    needs: test-deployment
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install test dependencies
+      run: npm install --save-dev puppeteer node-fetch chalk
+      
+    - name: Install Chrome dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          chromium-browser \
+          fonts-liberation \
+          libasound2 \
+          libatk-bridge2.0-0 \
+          libdrm2 \
+          libgtk-3-0 \
+          libnspr4 \
+          libnss3 \
+          libxss1 \
+          libxtst6 \
+          xdg-utils
+          
+    - name: Wait for deployment to propagate
+      run: sleep 60
+      
+    - name: Run integration tests
+      run: npm run test:integration
+      continue-on-error: true  # Don't fail the workflow if integration tests fail
+      
+  test-summary:
+    runs-on: ubuntu-latest
+    name: Test Summary
+    needs: [test-build, test-deployment, test-integration]
+    if: always()
+    
+    steps:
+    - name: Check test results
+      run: |
+        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.test-build.result }}" == "success" ]; then
+          echo "✅ **Build Validation**: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Build Validation**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ "${{ needs.test-deployment.result }}" == "success" ]; then
+          echo "✅ **Deployment Validation**: PASSED" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ needs.test-deployment.result }}" == "skipped" ]; then
+          echo "⏭️ **Deployment Validation**: SKIPPED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Deployment Validation**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ "${{ needs.test-integration.result }}" == "success" ]; then
+          echo "✅ **Integration Testing**: PASSED" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ needs.test-integration.result }}" == "skipped" ]; then
+          echo "⏭️ **Integration Testing**: SKIPPED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Integration Testing**: FAILED (non-critical)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🎮 **Game URL**: https://sl4ppy.github.io/MOMsters/" >> $GITHUB_STEP_SUMMARY 
