@@ -46,7 +46,7 @@ export class Player implements Collidable {
     this.sprite.endFill()
   }
 
-  update(deltaTime: number, inputManager: InputManager, screenWidth: number = 1024, screenHeight: number = 768): void {
+  update(deltaTime: number, inputManager: InputManager, screenWidth: number = 1024, _screenHeight: number = 768): void {
     const input = inputManager.getInputState()
     const moveSpeed = this.speed * (deltaTime / 60) // Convert to pixels per frame
     
@@ -83,8 +83,6 @@ export class Player implements Collidable {
     }
     
     // Apply movement
-    const oldX = this.sprite.x
-    const oldY = this.sprite.y
     this.sprite.x += deltaX
     this.sprite.y += deltaY
     
@@ -188,7 +186,6 @@ export class Player implements Collidable {
   applyHealthUpgrades(healthBonus: number, regenBonus: number): void {
     const newMaxHealth = this.baseMaxHealth + healthBonus
     if (newMaxHealth !== this.maxHealth) {
-      const healthRatio = this.health / this.maxHealth
       this.maxHealth = newMaxHealth
       // Give some immediate health when max health increases
       this.health = Math.min(this.health + (healthBonus * 0.5), this.maxHealth)

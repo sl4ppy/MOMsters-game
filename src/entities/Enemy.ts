@@ -74,7 +74,7 @@ export abstract class Enemy implements Collidable {
       const projectile = other as any
       const damage = projectile.projectileDamage || 10 // Use projectile's damage or default
       
-      const killed = this.takeDamage(damage)
+      this.takeDamage(damage)
       // Less verbose logging for better gameplay experience
     }
   }

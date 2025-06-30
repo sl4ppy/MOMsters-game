@@ -3,7 +3,7 @@ import { GameState } from './GameState'
 import { InputManager } from './InputManager'
 import { Player } from '../entities/Player'
 import { Camera } from './Camera'
-import { CollisionManager, CollisionGroup } from './CollisionManager'
+import { CollisionManager } from './CollisionManager'
 import { EnemySpawner } from '../systems/EnemySpawner'
 import { WeaponSystem } from '../systems/WeaponSystem'
 import { LevelingSystem } from '../systems/LevelingSystem'
@@ -82,7 +82,7 @@ export class Game {
     this.collisionManager.addEntity(this.player)
     
     // Set up player callbacks
-    this.player.onDamageTaken = (damage: number) => {
+    this.player.onDamageTaken = (_damage: number) => {
       this.hud.showDamageEffect()
     }
     
@@ -240,7 +240,7 @@ export class Game {
       this.levelUpScreen.show(event.newLevel, event.availableUpgrades)
     }
     
-    this.levelingSystem.onXPGained = (currentXP, xpToNext, totalXP) => {
+    this.levelingSystem.onXPGained = (_currentXP, _xpToNext, _totalXP) => {
       // HUD will be updated in the update loop
     }
     
@@ -324,32 +324,7 @@ export class Game {
     console.log('Added world reference points for camera testing')
   }
 
-  private addTestCollisionObject(): void {
-    // Create a test collision object (red square that acts as an enemy)
-    const testEnemy = {
-      sprite: new Graphics(),
-      collisionRadius: 20,
-      collisionGroup: CollisionGroup.ENEMY,
-      onCollision: (other: any) => {
-        console.log(`Test enemy collided with ${other.collisionGroup}`)
-      }
-    }
-    
-    // Draw the test enemy as a red square
-    testEnemy.sprite.beginFill(0xff0000, 0.7) // Semi-transparent red
-    testEnemy.sprite.drawRect(-20, -20, 40, 40) // 40x40 square centered
-    testEnemy.sprite.endFill()
-    
-    // Position it near the origin so player can easily test collision
-    testEnemy.sprite.x = 100
-    testEnemy.sprite.y = 100
-    
-    // Add to world and collision system
-    this.gameContainer.addChild(testEnemy.sprite)
-    this.collisionManager.addEntity(testEnemy as any)
-    
-    console.log('Added test collision object at (100, 100)')
-  }
+
 
   private update(deltaTime: number): void {
     // Update game systems first

@@ -107,7 +107,7 @@ export class GameOverScreen {
   /**
    * Update game over screen (for animations)
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     if (!this.isVisible) return
     
     // Pulsing title effect

@@ -207,7 +207,6 @@ export class HUD {
 
   private updateWeaponStats(weaponSystem: WeaponSystem): void {
     const stats = weaponSystem.getStats()
-    const weaponInfo = weaponSystem.getWeaponInfo()
     this.weaponStatsText.text = `Weapon: ${stats.shotsFired} shots | ${stats.hits} hits | ${stats.accuracy}% accuracy`
   }
 

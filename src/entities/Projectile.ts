@@ -7,7 +7,7 @@ export class Projectile implements Collidable {
   public collisionGroup: CollisionGroup = CollisionGroup.PROJECTILE
   
   private velocity: { x: number, y: number }
-  private speed: number
+  private _speed: number
   private damage: number
   private lifetime: number
   private maxLifetime: number
@@ -19,7 +19,7 @@ export class Projectile implements Collidable {
 
   constructor(x: number, y: number, targetX: number, targetY: number, speed: number = 300, damage: number = 10) {
     this.sprite = new Graphics()
-    this.speed = speed
+    this._speed = speed
     this.damage = damage
     this.lifetime = 0
     this.maxLifetime = 3 // 3 seconds max flight time
@@ -35,12 +35,12 @@ export class Projectile implements Collidable {
     
     if (distance > 0) {
       this.velocity = {
-        x: (dx / distance) * speed,
-        y: (dy / distance) * speed
+        x: (dx / distance) * this._speed,
+        y: (dy / distance) * this._speed
       }
     } else {
       // If no distance, shoot right
-      this.velocity = { x: speed, y: 0 }
+      this.velocity = { x: this._speed, y: 0 }
     }
     
     this.createSprite()

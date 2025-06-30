@@ -140,7 +140,7 @@ export class WeaponSystem {
   /**
    * Handle projectile expiring (reached max lifetime)
    */
-  private handleProjectileExpired(projectile: Projectile): void {
+  private handleProjectileExpired(_projectile: Projectile): void {
     // Projectile expired without hitting anything
     // Could add visual effect here if needed
   }
