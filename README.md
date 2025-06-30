@@ -1,5 +1,4 @@
-# 🧛 Vampire Survivors Clone
-
+# 🧛 MOMsters! - a survivor-like bullet-heaven game
 A browser-based roguelike survival game built with PixiJS and TypeScript, inspired by Vampire Survivors.
 
 ## 🎮 Game Overview
