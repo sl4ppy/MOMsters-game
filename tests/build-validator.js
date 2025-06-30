@@ -13,9 +13,14 @@ async function validateBuildProcess() {
         // Clean any existing dist folder
         logger.info('Cleaning existing build...');
         try {
-            execSync('rm -rf dist', { stdio: 'ignore' });
+            // Use cross-platform command
+            execSync('rmdir /s /q dist', { stdio: 'ignore' });
         } catch {
-            // Ignore errors if dist doesn't exist
+            try {
+                execSync('rm -rf dist', { stdio: 'ignore' });
+            } catch {
+                // Ignore errors if dist doesn't exist
+            }
         }
         
         // Run the build
@@ -217,6 +222,12 @@ async function runBuildValidation() {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
+    runBuildValidation().catch(error => {
+        console.error('Build validation failed:', error);
+        process.exit(1);
+    });
+} else if (process.argv[1] && process.argv[1].includes('build-validator.js')) {
+    // Alternative check for Windows paths
     runBuildValidation().catch(error => {
         console.error('Build validation failed:', error);
         process.exit(1);
