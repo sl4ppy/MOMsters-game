@@ -178,7 +178,7 @@ How long can you survive?`
       align: 'center'
     })
     
-    this.versionText = new Text('Built with PixiJS & TypeScript | v1.0.0', versionStyle)
+    this.versionText = new Text('Built with PixiJS & TypeScript | v1.0.1', versionStyle)
     this.versionText.anchor.set(0.5)
     this.versionText.x = 0
     this.versionText.y = 200
