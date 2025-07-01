@@ -2,7 +2,7 @@ import { TestLogger, sleep } from './utils.js';
 import puppeteer from 'puppeteer';
 
 const logger = new TestLogger();
-const GITHUB_PAGES_URL = 'https://sl4ppy.github.io/MOMsters/';
+const GITHUB_PAGES_URL = 'https://sl4ppy.github.io/MOMsters-game/';
 const GAME_LOAD_TIMEOUT = 30000; // 30 seconds
 const INTERACTION_DELAY = 500; // 500ms between interactions
 
@@ -386,6 +386,9 @@ async function runIntegrationTests() {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
+    runIntegrationTests();
+} else if (process.argv[1] && process.argv[1].includes('integration-tests.js')) {
+    // Alternative check for Windows paths
     runIntegrationTests();
 }
 

@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 const logger = new TestLogger();
-const EXPECTED_BASE_PATH = '/MOMsters/';
+const EXPECTED_BASE_PATH = '/MOMsters-game/';
 const MIN_JS_SIZE = 500000; // 500KB minimum for the game bundle
 
 async function validateBuildProcess() {
@@ -184,7 +184,7 @@ function validateConfigConsistency() {
     try {
         // Check vite.config.ts for correct base path
         const viteConfig = readFile('vite.config.ts');
-        if (viteConfig.includes("'/MOMsters/'")) {
+        if (viteConfig.includes("'/MOMsters-game/'")) {
             logger.success('Vite config has correct base path');
         } else {
             logger.error('Vite config base path might be incorrect');

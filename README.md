@@ -1,6 +1,6 @@
 # 🧛 MOMsters! - a survivor-like bullet-heaven game
 
-## 🎮 [▶️ **PLAY NOW**](https://sl4ppy.github.io/MOMsters/) ⚡
+## 🎮 [▶️ **PLAY NOW**](https://sl4ppy.github.io/MOMsters-game/) ⚡
 
 A browser-based roguelike survival game built with PixiJS and TypeScript, inspired by Vampire Survivors.
 
@@ -20,8 +20,8 @@ This is a 2D top-down survival game where the player character automatically fig
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/sl4ppy/MOMsters.git
-cd MOMsters
+git clone https://github.com/sl4ppy/MOMsters-game.git
+cd MOMsters-game
 ```
 
 2. Install dependencies:

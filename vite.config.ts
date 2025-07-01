@@ -3,17 +3,17 @@ import { resolve } from 'path'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/MOMsters/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/MOMsters-game/' : '/',
   build: {
     rollupOptions: {
       input: {
         main: resolve(fileURLToPath(new URL('.', import.meta.url)), 'index.html')
       },
       output: {
-        // Force new filenames to bypass GitHub Pages caching
-        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
+        // ULTRA-AGGRESSIVE cache busting for GitHub Pages CDN
+        entryFileNames: `assets/[name]-[hash]-${Date.now()}-ULTRA-CACHE-BREAK.js`,
+        chunkFileNames: `assets/[name]-[hash]-${Date.now()}-ULTRA-CACHE-BREAK.js`,
+        assetFileNames: `assets/[name]-[hash]-${Date.now()}-ULTRA-CACHE-BREAK.[ext]`
       }
     }
   },
