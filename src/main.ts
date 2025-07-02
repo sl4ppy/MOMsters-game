@@ -29,6 +29,13 @@ async function init() {
   const game = new Game(app)
   await game.init()
   game.start()
+  
+  // Hide the loading text once the game is initialized and title screen is ready
+  const loadingText = document.getElementById('loadingText')
+  if (loadingText) {
+    loadingText.style.display = 'none'
+    console.log('Loading text hidden - game ready!')
+  }
 }
 
 // Start the game when the page loads
