@@ -374,4 +374,23 @@ export class SimplePlayer implements Collidable {
   get isInvulnerable(): boolean { return this.invulnerabilityTimer > 0 }
   get isDead(): boolean { return this.health <= 0 }
   get healthPercent(): number { return this.health / this.maxHealth }
+  
+  /**
+   * Apply health upgrades from leveling system
+   */
+  applyHealthUpgrades(healthBonus: number, regenBonus: number): void {
+    this.maxHealth += healthBonus
+    this.health = Math.min(this.health + healthBonus, this.maxHealth) // Heal by the bonus amount
+    this.healthRegenRate += regenBonus
+    
+    console.log(`Health upgraded: +${healthBonus} max health, +${regenBonus} regen rate`)
+  }
+  
+  /**
+   * Apply speed upgrade from leveling system
+   */
+  applySpeedUpgrade(speedBonus: number): void {
+    this.speed += speedBonus
+    console.log(`Speed upgraded: +${speedBonus} speed (new total: ${this.speed})`)
+  }
 } 

@@ -13,11 +13,12 @@ export class WeaponSystem {
   private enemySpawner: EnemySpawner
   
   // Weapon settings
-  private fireRate: number = 1.5 // Shots per second
+  private attackInterval: number = 1.0 // Time between attacks in seconds (1 attack per second)
   private timeSinceLastShot: number = 0
   private range: number = 300 // Maximum targeting range
   private projectileSpeed: number = 400
   private projectileDamage: number = 25
+  private pierceBonus: number = 0 // Current piercing bonus from upgrades
   
   // Stats
   private totalShotsFired: number = 0
@@ -45,8 +46,7 @@ export class WeaponSystem {
   private updateFiring(deltaTime: number): void {
     this.timeSinceLastShot += deltaTime / 60 // Convert to seconds
     
-    const shotInterval = 1 / this.fireRate
-    if (this.timeSinceLastShot >= shotInterval) {
+    if (this.timeSinceLastShot >= this.attackInterval) {
       const target = this.findNearestEnemy()
       if (target) {
         this.fireProjectile(target)
@@ -97,7 +97,8 @@ export class WeaponSystem {
       targetPos.x, 
       targetPos.y, 
       this.projectileSpeed, 
-      this.projectileDamage
+      this.projectileDamage,
+      this.pierceBonus
     )
     
     // Set up projectile callbacks
@@ -207,10 +208,11 @@ export class WeaponSystem {
   /**
    * Upgrade weapon properties
    */
-  upgrade(property: 'fireRate' | 'damage' | 'speed' | 'range', amount: number): void {
+  upgrade(property: 'attackSpeed' | 'damage' | 'speed' | 'range', amount: number): void {
     switch (property) {
-      case 'fireRate':
-        this.fireRate = Math.min(10, this.fireRate + amount) // Max 10 shots/sec
+      case 'attackSpeed':
+        // Reduce attack interval (faster attacks)
+        this.attackInterval = Math.max(0.1, this.attackInterval - amount) // Min 0.1 seconds between attacks
         break
       case 'damage':
         this.projectileDamage += amount
@@ -238,26 +240,26 @@ export class WeaponSystem {
     // Apply damage multiplier (base damage is 25)
     this.projectileDamage = Math.floor(25 * upgrades.damageMultiplier)
     
-    // Apply fire rate multiplier (base rate is 1.5 shots/sec)
-    this.fireRate = Math.min(10, 1.5 * upgrades.fireRateMultiplier)
+    // Apply fire rate multiplier (base interval is 1.0 seconds)
+    // Lower interval = faster attacks
+    this.attackInterval = Math.max(0.1, 1.0 / upgrades.fireRateMultiplier)
     
     // Apply range bonus (base range is 300)
     this.range = 300 + upgrades.rangeBonus
     
-    // Note: pierceBonus will be implemented when we add piercing projectiles
-    // For now, we'll store it for future use
+    // Apply piercing bonus
+    this.pierceBonus = upgrades.pierceBonus
     if (upgrades.pierceBonus > 0) {
-      // TODO: Implement piercing projectiles
-      console.log(`Piercing bonus available: +${upgrades.pierceBonus} pierce`)
+      console.log(`Piercing bonus applied: +${upgrades.pierceBonus} pierce`)
     }
   }
 
   /**
    * Get current weapon properties
    */
-  getWeaponInfo(): { fireRate: number, damage: number, speed: number, range: number } {
+  getWeaponInfo(): { attackSpeed: number, damage: number, speed: number, range: number } {
     return {
-      fireRate: this.fireRate,
+      attackSpeed: 1 / this.attackInterval, // Convert back to attacks per second for display
       damage: this.projectileDamage,
       speed: this.projectileSpeed,
       range: this.range

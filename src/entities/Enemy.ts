@@ -1,9 +1,9 @@
-import { Graphics } from 'pixi.js'
+import { Graphics, Sprite, Container } from 'pixi.js'
 import { Collidable, CollisionGroup } from '../core/CollisionManager'
 import { Player } from './Player'
 
 export abstract class Enemy implements Collidable {
-  public sprite: Graphics
+  public sprite: Container
   public collisionRadius: number
   public collisionGroup: CollisionGroup = CollisionGroup.ENEMY
   
@@ -15,7 +15,7 @@ export abstract class Enemy implements Collidable {
   protected isAlive: boolean = true
   
   constructor(health: number, speed: number, damage: number, collisionRadius: number, xpValue: number = 1) {
-    this.sprite = new Graphics()
+    this.sprite = new Container()
     this.health = health
     this.maxHealth = health
     this.speed = speed
@@ -23,7 +23,7 @@ export abstract class Enemy implements Collidable {
     this.collisionRadius = collisionRadius
     this.xpValue = xpValue
     
-    this.createSprite()
+    // Don't call createSprite here - let derived classes call it after initialization
   }
 
   /**

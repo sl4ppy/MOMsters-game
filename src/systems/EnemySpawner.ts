@@ -4,6 +4,7 @@ import { CollisionManager } from '../core/CollisionManager'
 import { Player } from '../entities/Player'
 import { Enemy } from '../entities/Enemy'
 import { BasicEnemy } from '../entities/enemies/BasicEnemy'
+import { EnemySpriteManager } from '../core/EnemySpriteManager'
 
 export class EnemySpawner {
   private enemies: Enemy[] = []
@@ -11,6 +12,7 @@ export class EnemySpawner {
   private camera: Camera
   private collisionManager: CollisionManager
   private player: Player
+  private enemySpriteManager: EnemySpriteManager
   
   // Spawn settings
   private baseSpawnRate: number = 2.0 // Enemies per second at start
@@ -22,24 +24,76 @@ export class EnemySpawner {
   private difficultyTimer: number = 0
   private difficultyIncreaseInterval: number = 30 // Increase difficulty every 30 seconds
   
+  // Progressive enemy spawning
+  private gameTimer: number = 0
+  private currentEnemyType: number = 0 // Current enemy type being spawned (0-29)
+  private enemyPhaseDuration: number = 50 // Seconds per enemy type (40-60 seconds average)
+  private enemyPhaseTimer: number = 0
+  private enemyProgressionEnabled: boolean = true
+  
   // Callbacks
   public onEnemyKilled?: (enemy: Enemy, position: { x: number, y: number }) => void
   
-  constructor(gameContainer: Container, camera: Camera, collisionManager: CollisionManager, player: Player) {
+  constructor(gameContainer: Container, camera: Camera, collisionManager: CollisionManager, player: Player, enemySpriteManager: EnemySpriteManager) {
     this.gameContainer = gameContainer
     this.camera = camera
     this.collisionManager = collisionManager
     this.player = player
+    this.enemySpriteManager = enemySpriteManager
   }
 
   /**
    * Update the spawner - spawn new enemies and update existing ones
    */
   update(deltaTime: number): void {
+    this.updateGameTimer(deltaTime)
     this.updateDifficulty(deltaTime)
+    this.updateEnemyProgression(deltaTime)
     this.updateSpawning(deltaTime)
     this.updateEnemies(deltaTime)
     this.cleanupDeadEnemies()
+  }
+
+  /**
+   * Update game timer for progression tracking
+   */
+  private updateGameTimer(deltaTime: number): void {
+    this.gameTimer += deltaTime / 60 // Convert to seconds
+  }
+
+  /**
+   * Update enemy progression - advance to next enemy type over time
+   */
+  private updateEnemyProgression(deltaTime: number): void {
+    if (!this.enemyProgressionEnabled) return
+    
+    this.enemyPhaseTimer += deltaTime / 60 // Convert to seconds
+    
+    if (this.enemyPhaseTimer >= this.enemyPhaseDuration) {
+      this.enemyPhaseTimer = 0
+      this.advanceToNextEnemyType()
+    }
+  }
+
+  /**
+   * Advance to the next enemy type in the progression
+   */
+  private advanceToNextEnemyType(): void {
+    if (this.currentEnemyType < 29) {
+      this.currentEnemyType++
+      
+      const enemyConfig = this.enemySpriteManager.getEnemyConfig(this.currentEnemyType)
+      if (enemyConfig) {
+        console.log(`🎯 Enemy progression: Now spawning ${enemyConfig.name} (Type ${this.currentEnemyType})`)
+        
+        // Randomize the phase duration for next enemy (40-60 seconds)
+        this.enemyPhaseDuration = 40 + Math.random() * 20
+      }
+    } else {
+      // All enemy types have been introduced
+      console.log('🎯 All 30 enemy types have been introduced!')
+      this.enemyProgressionEnabled = false
+    }
   }
 
   /**
@@ -76,7 +130,14 @@ export class EnemySpawner {
    * Spawn a new enemy at the edge of the screen
    */
   private spawnEnemy(): void {
-    const enemy = new BasicEnemy()
+    // Get the current enemy configuration
+    const enemyConfig = this.enemySpriteManager.getEnemyConfig(this.currentEnemyType)
+    if (!enemyConfig) {
+      console.warn(`No enemy config found for type ${this.currentEnemyType}`)
+      return
+    }
+    
+    const enemy = new BasicEnemy(this.enemySpriteManager, this.currentEnemyType)
     
     // Get spawn position at screen edge
     const spawnPos = this.getSpawnPosition()
@@ -91,7 +152,7 @@ export class EnemySpawner {
     
     // Less verbose logging - only every 10th enemy
     if (this.enemies.length % 10 === 0) {
-      console.log(`Spawned enemy #${this.enemies.length} at (${spawnPos.x.toFixed(0)}, ${spawnPos.y.toFixed(0)})`)
+      console.log(`Spawned ${enemyConfig.name} #${this.enemies.length} at (${spawnPos.x.toFixed(0)}, ${spawnPos.y.toFixed(0)})`)
     }
   }
 
@@ -181,6 +242,28 @@ export class EnemySpawner {
       count: this.enemies.length,
       spawnRate: this.currentSpawnRate,
       maxEnemies: this.maxEnemies
+    }
+  }
+
+  /**
+   * Get current enemy progression info
+   */
+  getProgressionInfo(): { 
+    currentEnemyType: number, 
+    currentEnemyName: string, 
+    gameTime: number, 
+    phaseTimer: number, 
+    phaseDuration: number,
+    progressionEnabled: boolean 
+  } {
+    const enemyConfig = this.enemySpriteManager.getEnemyConfig(this.currentEnemyType)
+    return {
+      currentEnemyType: this.currentEnemyType,
+      currentEnemyName: enemyConfig?.name || 'Unknown',
+      gameTime: this.gameTimer,
+      phaseTimer: this.enemyPhaseTimer,
+      phaseDuration: this.enemyPhaseDuration,
+      progressionEnabled: this.enemyProgressionEnabled
     }
   }
 

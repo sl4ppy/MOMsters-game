@@ -241,10 +241,13 @@ export interface BiomeType {
     sprite.zIndex = -5000 // Ensure decorations render above terrain but below other sprites
     sprite.alpha = 0.6 + Math.random() * 0.4 // Set decoration tiles to random opacity between 60% and 100%
     
-    // Scale the sprite to render at the desired tile size (32x32)
-    // The actual texture tile size is 32x32, so no scaling needed
-    const scaleFactor = this.tileSize / this.actualTileSize // 32 / 32 = 1
-    sprite.scale.set(scaleFactor, scaleFactor)
+    // Scale the sprite with random size variation for visual variety
+    // Base scale factor for 32x32 tiles
+    const baseScaleFactor = this.tileSize / this.actualTileSize // 32 / 32 = 1
+    // Add random scaling between 1x and 4x
+    const randomScaleMultiplier = 1 + Math.random() * 3 // Random value between 1 and 4
+    const finalScaleFactor = baseScaleFactor * randomScaleMultiplier
+    sprite.scale.set(finalScaleFactor, finalScaleFactor)
     
     return {
       sprite,

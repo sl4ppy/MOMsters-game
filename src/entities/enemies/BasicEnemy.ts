@@ -1,35 +1,67 @@
 import { Enemy } from '../Enemy'
+import { EnemySpriteManager } from '../../core/EnemySpriteManager'
+import { Graphics } from 'pixi.js'
 
 export class BasicEnemy extends Enemy {
-  constructor() {
-    // health, speed, damage, collisionRadius, xpValue
-    super(30, 80, 10, 12, 2)
+  private enemySpriteManager: EnemySpriteManager
+  private visualSprite: any // Will be Sprite or Graphics
+  private enemyType: number
+
+  constructor(enemySpriteManager: EnemySpriteManager, enemyType: number = 0) {
+    // Use the specified enemy type from the atlas
+    const config = enemySpriteManager.getEnemyConfig(enemyType) || {
+      health: 30, speed: 80, damage: 10, collisionRadius: 12, xpValue: 2
+    }
+    
+    super(config.health, config.speed, config.damage, config.collisionRadius, config.xpValue)
+    
+    this.enemySpriteManager = enemySpriteManager
+    this.enemyType = enemyType
+    
+    // Now that we're fully initialized, create the sprite
+    this.createSprite()
   }
 
   /**
    * Create the visual appearance of the basic enemy
    */
   protected createSprite(): void {
-    this.sprite.clear()
+    // Clear any existing children
+    this.sprite.removeChildren()
     
-    // Draw main body (red circle)
-    this.sprite.beginFill(0xff4444) // Red color
-    this.sprite.drawCircle(0, 0, this.collisionRadius)
-    this.sprite.endFill()
+    // Try to create sprite from atlas using the specified enemy type
+    const atlasSprite = this.enemySpriteManager.createEnemySprite(this.enemyType)
     
-    // Draw inner circle for depth
-    this.sprite.beginFill(0xff0000) // Darker red
-    this.sprite.drawCircle(0, 0, this.collisionRadius - 4)
-    this.sprite.endFill()
-    
-    // Draw simple "eye" or direction indicator
-    this.sprite.beginFill(0x000000) // Black
-    this.sprite.drawCircle(3, -3, 2)
-    this.sprite.endFill()
-    
-    this.sprite.beginFill(0x000000) // Black
-    this.sprite.drawCircle(-3, -3, 2)
-    this.sprite.endFill()
+    if (atlasSprite) {
+      // Use the atlas sprite
+      this.visualSprite = atlasSprite
+      this.sprite.addChild(atlasSprite)
+    } else {
+      // Fallback to graphics if atlas not loaded
+      const graphics = new Graphics()
+      
+      // Draw main body (red circle)
+      graphics.beginFill(0xff4444) // Red color
+      graphics.drawCircle(0, 0, this.collisionRadius)
+      graphics.endFill()
+      
+      // Draw inner circle for depth
+      graphics.beginFill(0xff0000) // Darker red
+      graphics.drawCircle(0, 0, this.collisionRadius - 4)
+      graphics.endFill()
+      
+      // Draw simple "eye" or direction indicator
+      graphics.beginFill(0x000000) // Black
+      graphics.drawCircle(3, -3, 2)
+      graphics.endFill()
+      
+      graphics.beginFill(0x000000) // Black
+      graphics.drawCircle(-3, -3, 2)
+      graphics.endFill()
+      
+      this.visualSprite = graphics
+      this.sprite.addChild(graphics)
+    }
   }
 
   /**
@@ -38,11 +70,16 @@ export class BasicEnemy extends Enemy {
   protected updateAppearance(): void {
     super.updateAppearance()
     
-    // Add flashing effect when damaged
-    if (this.healthPercent < 0.5) {
-      // Flash red when heavily damaged
-      const flash = Math.sin(Date.now() / 100) * 0.3 + 0.7
-      this.sprite.alpha = flash
+    if (this.visualSprite) {
+      // Add flashing effect when damaged
+      if (this.healthPercent < 0.5) {
+        // Flash when heavily damaged
+        const flash = Math.sin(Date.now() / 100) * 0.3 + 0.7
+        this.visualSprite.alpha = flash
+      } else {
+        // Normal opacity based on health
+        this.visualSprite.alpha = 0.5 + (this.healthPercent * 0.5)
+      }
     }
   }
 } 

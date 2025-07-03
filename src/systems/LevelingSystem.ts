@@ -76,7 +76,7 @@ export class LevelingSystem {
       {
         id: 'speed_boost',
         name: 'Speed Boost',
-        description: '+15% Movement Speed',
+        description: '+15 Movement Speed',
         icon: '⚡',
         maxLevel: 5,
         currentLevel: 0,
@@ -105,7 +105,7 @@ export class LevelingSystem {
       {
         id: 'fire_rate',
         name: 'Attack Speed',
-        description: '+20% Fire Rate',
+        description: '-20% Attack Interval',
         icon: '🔥',
         maxLevel: 6,
         currentLevel: 0,
@@ -230,11 +230,20 @@ export class LevelingSystem {
           case 'damageMultiplier':
           case 'fireRateMultiplier':
           case 'expMultiplier':
-            // Multiplicative effects
+            // Multiplicative effects - multiply by effect value for each level
             totalEffect *= Math.pow(effectValue, upgrade.currentLevel)
             break
+          case 'healthBonus':
+          case 'speedBonus':
+          case 'regenBonus':
+          case 'rangeBonus':
+          case 'pierceBonus':
+          case 'magnetRange':
+            // Additive effects - add effect value for each level
+            totalEffect += effectValue * upgrade.currentLevel
+            break
           default:
-            // Additive effects
+            // Default to additive for unknown effects
             totalEffect += effectValue * upgrade.currentLevel
             break
         }

@@ -5,6 +5,8 @@ import { SimplePlayer } from '../entities/SimplePlayer'
 import { Camera } from './Camera'
 import { CollisionManager } from './CollisionManager'
 import { TerrainManager, TerrainTile, DecorationTile } from './TerrainManager'
+import { EnemySpriteManager } from './EnemySpriteManager'
+import { GemSpriteManager } from './GemSpriteManager'
 import { EnemySpawner } from '../systems/EnemySpawner'
 import { WeaponSystem } from '../systems/WeaponSystem'
 import { LevelingSystem } from '../systems/LevelingSystem'
@@ -22,6 +24,8 @@ export class Game {
   private player: SimplePlayer
   private camera: Camera
   private collisionManager: CollisionManager
+  private enemySpriteManager: EnemySpriteManager
+  private gemSpriteManager: GemSpriteManager
   private enemySpawner: EnemySpawner
   private weaponSystem: WeaponSystem
   private levelingSystem: LevelingSystem
@@ -46,7 +50,9 @@ export class Game {
     this.player = new SimplePlayer()
     this.camera = new Camera(this.gameContainer, app.view.width, app.view.height)
     this.collisionManager = new CollisionManager()
-    this.enemySpawner = new EnemySpawner(this.gameContainer, this.camera, this.collisionManager, this.player)
+    this.enemySpriteManager = new EnemySpriteManager()
+    this.gemSpriteManager = new GemSpriteManager(this.app)
+    this.enemySpawner = new EnemySpawner(this.gameContainer, this.camera, this.collisionManager, this.player, this.enemySpriteManager)
     this.weaponSystem = new WeaponSystem(this.gameContainer, this.collisionManager, this.player, this.enemySpawner)
     this.levelingSystem = new LevelingSystem()
     this.terrainManager = new TerrainManager()
@@ -71,6 +77,10 @@ export class Game {
 
   async init(): Promise<void> {
     console.log('Initializing game...')
+    
+    // Load sprite atlases
+    await this.enemySpriteManager.loadEnemyAtlas()
+    await this.gemSpriteManager.loadGemAtlas()
     
     // Initialize systems
     this.inputManager.init()
@@ -266,7 +276,7 @@ export class Game {
    * Drop an experience orb at the specified location
    */
   private dropExperienceOrb(x: number, y: number, xpValue: number = 1): void {
-    const orb = new ExperienceOrb(x, y, xpValue)
+    const orb = new ExperienceOrb(x, y, xpValue, this.gemSpriteManager, () => this.levelingSystem.magnetRange)
     
     // Set up orb collection callback
     orb.onCollected = (xp: number) => {

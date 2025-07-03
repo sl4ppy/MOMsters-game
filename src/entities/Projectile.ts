@@ -1,10 +1,16 @@
-import { Graphics } from 'pixi.js'
+import { Graphics, Sprite, Container, Rectangle, Texture } from 'pixi.js'
 import { Collidable, CollisionGroup } from '../core/CollisionManager'
 
 export class Projectile implements Collidable {
-  public sprite: Graphics
-  public collisionRadius: number = 3
+  public sprite: Container
+  public collisionRadius: number = 16
   public collisionGroup: CollisionGroup = CollisionGroup.PROJECTILE
+  
+  private visualSprite: Sprite | Graphics | null = null
+  private animationFrames: Sprite[] = []
+  private currentFrame: number = 0
+  private frameTimer: number = 0
+  private frameInterval: number = 6 // frames between animation updates (100ms at 60fps)
   
   private velocity: { x: number, y: number }
   private _speed: number
@@ -12,17 +18,20 @@ export class Projectile implements Collidable {
   private lifetime: number
   private maxLifetime: number
   private isActive: boolean = true
+  private pierceCount: number = 0
+  private maxPierce: number = 0
   
   // Callbacks
   public onHitTarget?: (target: Collidable) => void
   public onExpired?: () => void
 
-  constructor(x: number, y: number, targetX: number, targetY: number, speed: number = 300, damage: number = 10) {
-    this.sprite = new Graphics()
+  constructor(x: number, y: number, targetX: number, targetY: number, speed: number = 300, damage: number = 10, pierce: number = 0) {
+    this.sprite = new Container()
     this._speed = speed
     this.damage = damage
     this.lifetime = 0
     this.maxLifetime = 3 // 3 seconds max flight time
+    this.maxPierce = pierce
     
     // Set initial position
     this.sprite.x = x
@@ -44,24 +53,76 @@ export class Projectile implements Collidable {
     }
     
     this.createSprite()
+    
+    // Set initial rotation based on velocity direction
+    this.updateRotation()
   }
 
   private createSprite(): void {
-    this.sprite.clear()
+    // Clear any existing children
+    this.sprite.removeChildren()
+    
+    // Try to load fireball sprite
+    this.loadFireballSprite()
+  }
+  
+  private async loadFireballSprite(): Promise<void> {
+    try {
+      // Try to load the fireball texture
+      const texture = await import('pixi.js').then(pixi => pixi.Assets.load('/sprites/fireball.png'))
+      
+      // Create animation frames from the sprite sheet
+      // 768x128 sheet with 6 frames of 128x128 each
+      const frameWidth = 128
+      const frameHeight = 128
+      const numFrames = 6
+      
+      for (let i = 0; i < numFrames; i++) {
+        const frameTexture = new Rectangle(i * frameWidth, 0, frameWidth, frameHeight)
+        const frameSprite = new Sprite(new Texture(texture.baseTexture, frameTexture))
+        
+        // Scale and center the frame (2.025x larger)
+        frameSprite.width = this.collisionRadius * 4.05
+        frameSprite.height = this.collisionRadius * 4.05
+        frameSprite.anchor.set(0.5, 0.5)
+        
+        // Hide all frames except the first one initially
+        frameSprite.visible = i === 0
+        
+        this.animationFrames.push(frameSprite)
+        this.sprite.addChild(frameSprite)
+      }
+      
+      this.visualSprite = this.animationFrames[0]
+      
+      console.log(`Created ${this.animationFrames.length} fireball animation frames`)
+      
+    } catch (error) {
+      // Fallback to graphics if fireball sprite fails to load
+      console.log('Fireball sprite not found, using fallback graphics:', error)
+      this.createFallbackGraphics()
+    }
+  }
+  
+  private createFallbackGraphics(): void {
+    const graphics = new Graphics()
     
     // Create a simple projectile - small white circle with blue center
-    this.sprite.beginFill(0xffffff) // White outer
-    this.sprite.drawCircle(0, 0, this.collisionRadius)
-    this.sprite.endFill()
+    graphics.beginFill(0xffffff) // White outer
+    graphics.drawCircle(0, 0, this.collisionRadius)
+    graphics.endFill()
     
-    this.sprite.beginFill(0x00aaff) // Blue center
-    this.sprite.drawCircle(0, 0, this.collisionRadius - 1)
-    this.sprite.endFill()
+    graphics.beginFill(0x00aaff) // Blue center
+    graphics.drawCircle(0, 0, this.collisionRadius - 1)
+    graphics.endFill()
     
     // Add a small trail effect
-    this.sprite.beginFill(0xffffff, 0.3)
-    this.sprite.drawCircle(-2, 0, 1)
-    this.sprite.endFill()
+    graphics.beginFill(0xffffff, 0.3)
+    graphics.drawCircle(-2, 0, 1)
+    graphics.endFill()
+    
+    this.visualSprite = graphics
+    this.sprite.addChild(graphics)
   }
 
   /**
@@ -87,8 +148,51 @@ export class Projectile implements Collidable {
       this.expire()
     }
     
+    // Update animation
+    this.updateAnimation(deltaTime)
+    
     // Update visual effects
     this.updateAppearance()
+  }
+
+  private updateAnimation(deltaTime: number): void {
+    if (this.animationFrames.length === 0) return
+    
+    // Update frame timer
+    this.frameTimer += deltaTime
+    
+    // Check if it's time to advance to the next frame
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameTimer = 0
+      
+      // Hide current frame
+      this.animationFrames[this.currentFrame].visible = false
+      
+      // Advance to next frame
+      this.currentFrame = (this.currentFrame + 1) % this.animationFrames.length
+      
+      // Show new frame
+      this.animationFrames[this.currentFrame].visible = true
+      this.visualSprite = this.animationFrames[this.currentFrame]
+      
+      // Debug: log frame changes
+      console.log(`Fireball frame: ${this.currentFrame}`)
+    }
+    
+    // Update rotation to face the direction of travel
+    this.updateRotation()
+  }
+  
+  private updateRotation(): void {
+    if (this.animationFrames.length === 0) return
+    
+    // Calculate the angle from the velocity vector
+    const angle = Math.atan2(this.velocity.y, this.velocity.x)
+    
+    // Apply the rotation to all animation frames
+    for (const frame of this.animationFrames) {
+      frame.rotation = angle
+    }
   }
 
   private updateAppearance(): void {
@@ -96,8 +200,11 @@ export class Projectile implements Collidable {
     const agePercent = this.lifetime / this.maxLifetime
     this.sprite.alpha = 1.0 - (agePercent * 0.3) // Fade to 70% opacity
     
-    // Add slight rotation for visual interest
-    this.sprite.rotation += 0.1
+    // Update rotation for fallback graphics as well
+    if (this.visualSprite && this.animationFrames.length === 0) {
+      const angle = Math.atan2(this.velocity.y, this.velocity.x)
+      this.visualSprite.rotation = angle
+    }
   }
 
   /**
@@ -112,8 +219,19 @@ export class Projectile implements Collidable {
         this.onHitTarget(other)
       }
       
-      // Destroy this projectile
-      this.destroy()
+      // Handle piercing
+      this.pierceCount++
+      if (this.pierceCount > this.maxPierce) {
+        // Destroy this projectile if it has pierced its maximum
+        this.destroy()
+      } else {
+        // Continue flying through enemies
+        // Add a small visual effect to show piercing
+        this.sprite.alpha = 0.8
+        setTimeout(() => {
+          this.sprite.alpha = 1.0
+        }, 50)
+      }
     }
   }
 
@@ -134,7 +252,9 @@ export class Projectile implements Collidable {
     this.isActive = false
     // Add hit effect
     this.sprite.alpha = 0.5
-    this.sprite.tint = 0xffff00 // Yellow flash
+    if (this.visualSprite && 'tint' in this.visualSprite) {
+      this.visualSprite.tint = 0xffff00 // Yellow flash
+    }
   }
 
   /**
