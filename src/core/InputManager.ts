@@ -53,6 +53,10 @@ export class InputManager {
     this.keysJustPressed.clear()
   }
 
+  clearJustPressedKey(keyCode: string): void {
+    this.keysJustPressed.delete(keyCode)
+  }
+
   getInputState(): InputState {
     return {
       left: this.keys.has('KeyA') || this.keys.has('ArrowLeft'),

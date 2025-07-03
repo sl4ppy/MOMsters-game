@@ -1,4 +1,3 @@
-import { Player } from '../entities/Player'
 import { WeaponSystem } from './WeaponSystem'
 
 export interface Upgrade {
@@ -20,12 +19,19 @@ export interface Upgrade {
     magnetRange?: number
     expMultiplier?: number
     regenBonus?: number
+    weaponUnlock?: string // New weapon type to unlock
   }
 }
 
 export interface LevelUpEvent {
   newLevel: number
   availableUpgrades: Upgrade[]
+}
+
+// Interface for player objects that can receive upgrades
+interface UpgradablePlayer {
+  applyHealthUpgrades(healthBonus: number, regenBonus: number): void
+  applySpeedUpgrade(speedBonus: number): void
 }
 
 export class LevelingSystem {
@@ -139,7 +145,53 @@ export class LevelingSystem {
         maxLevel: 5,
         currentLevel: 0,
         effects: { expMultiplier: 1.15 }
+      },
+      
+      // Weapon unlock upgrades (only weapons with unique art assets)
+      {
+        id: 'unlock_axe',
+        name: 'Axe Thrower',
+        description: 'Unlock Throwing Axe weapon',
+        icon: '🪓',
+        maxLevel: 1,
+        currentLevel: 0,
+        effects: { weaponUnlock: 'axe' }
+      },
+      {
+        id: 'unlock_knife',
+        name: 'Knife Storm',
+        description: 'Unlock Multi-directional Knives',
+        icon: '🗡️',
+        maxLevel: 1,
+        currentLevel: 0,
+        effects: { weaponUnlock: 'knife' }
+      },
+      {
+        id: 'unlock_rune_tracer',
+        name: 'Eye Beam Projectiles',
+        description: 'Unlock blue laser projectiles from eyes',
+        icon: '🎯',
+        maxLevel: 1,
+        currentLevel: 0,
+        effects: { weaponUnlock: 'rune_tracer' }
+      },
+      {
+        id: 'unlock_eye_beam',
+        name: 'Rotating Eye Beam',
+        description: 'Unlock continuous rotating beam weapon',
+        icon: '👁️',
+        maxLevel: 1,
+        currentLevel: 0,
+        effects: { weaponUnlock: 'eye_beam' }
       }
+      
+      // DISABLED - Weapons without unique art assets:
+      // - Lightning Strike (lightning)
+      // - Whip Mastery (whip)  
+      // - Magic Wand (magic_wand)
+      // - Tail Mastery (bible)
+      // - Thermal Control (garlic)
+      // - Acid Glands (holy_water)
     ]
     
     // Store upgrades in map for easy access
@@ -207,11 +259,20 @@ export class LevelingSystem {
   /**
    * Select an upgrade when leveling up
    */
-  selectUpgrade(upgradeId: string): void {
+  selectUpgrade(upgradeId: string, weaponSystem?: any): void {
     const upgrade = this.allUpgrades.get(upgradeId)
     if (upgrade && upgrade.currentLevel < upgrade.maxLevel) {
       upgrade.currentLevel++
       console.log(`Upgraded ${upgrade.name} to level ${upgrade.currentLevel}`)
+      
+      // Handle weapon unlocks
+      if (upgrade.effects.weaponUnlock && weaponSystem) {
+        const weaponType = upgrade.effects.weaponUnlock
+        weaponSystem.addWeapon(weaponType)
+        // Set the weapon to level 1 when first unlocked
+        weaponSystem.upgradeWeapon(weaponType)
+        console.log(`Unlocked weapon: ${weaponType}`)
+      }
     }
   }
 
@@ -231,7 +292,9 @@ export class LevelingSystem {
           case 'fireRateMultiplier':
           case 'expMultiplier':
             // Multiplicative effects - multiply by effect value for each level
-            totalEffect *= Math.pow(effectValue, upgrade.currentLevel)
+            if (typeof effectValue === 'number') {
+              totalEffect *= Math.pow(effectValue, upgrade.currentLevel)
+            }
             break
           case 'healthBonus':
           case 'speedBonus':
@@ -240,11 +303,18 @@ export class LevelingSystem {
           case 'pierceBonus':
           case 'magnetRange':
             // Additive effects - add effect value for each level
-            totalEffect += effectValue * upgrade.currentLevel
+            if (typeof effectValue === 'number') {
+              totalEffect += effectValue * upgrade.currentLevel
+            }
+            break
+          case 'weaponUnlock':
+            // Weapon unlocks don't affect numeric calculations
             break
           default:
-            // Default to additive for unknown effects
-            totalEffect += effectValue * upgrade.currentLevel
+            // Default to additive for unknown numeric effects
+            if (typeof effectValue === 'number') {
+              totalEffect += effectValue * upgrade.currentLevel
+            }
             break
         }
       }
@@ -256,7 +326,7 @@ export class LevelingSystem {
   /**
    * Apply all upgrades to game systems
    */
-  applyUpgrades(player: Player, weaponSystem: WeaponSystem): void {
+  applyUpgrades(player: UpgradablePlayer, weaponSystem: WeaponSystem): void {
     // Apply health bonuses
     const healthBonus = this.getUpgradeEffect('healthBonus', 0)
     const regenBonus = this.getUpgradeEffect('regenBonus', 0)

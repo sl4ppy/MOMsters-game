@@ -259,7 +259,13 @@ export class SimplePlayer implements Collidable {
     
     if (this.timeSinceLastDamage >= this.healthRegenDelay && this.health < this.maxHealth) {
       const regenAmount = this.healthRegenRate * (deltaTime / 60)
-      this.health = Math.min(this.maxHealth, this.health + regenAmount)
+      const oldHealth = this.health
+      this.health = Math.min(this.maxHealth, Math.floor(this.health + regenAmount))
+      
+      // Log regeneration every 2 seconds to avoid spam
+      if (Math.floor(this.timeSinceLastDamage) % 2 === 0 && this.health > oldHealth) {
+        console.log(`Health regenerating: ${oldHealth} -> ${this.health} (rate: ${this.healthRegenRate.toFixed(2)} HP/sec, time since damage: ${this.timeSinceLastDamage.toFixed(1)}s)`)
+      }
     }
   }
 
@@ -327,8 +333,10 @@ export class SimplePlayer implements Collidable {
   }
 
   takeDamage(amount: number): boolean {
-    this.health -= amount
+    this.health = Math.floor(this.health - amount)
     this.timeSinceLastDamage = 0
+    
+    console.log(`Player took ${amount} damage: ${this.health + amount} -> ${this.health} HP (regen timer reset)`)
     
     if (this.health <= 0) {
       this.health = 0
@@ -362,7 +370,7 @@ export class SimplePlayer implements Collidable {
   }
 
   heal(amount: number): void {
-    this.health = Math.min(this.maxHealth, this.health + amount)
+    this.health = Math.min(this.maxHealth, Math.floor(this.health + amount))
   }
 
   // Getters
@@ -379,11 +387,13 @@ export class SimplePlayer implements Collidable {
    * Apply health upgrades from leveling system
    */
   applyHealthUpgrades(healthBonus: number, regenBonus: number): void {
-    this.maxHealth += healthBonus
-    this.health = Math.min(this.health + healthBonus, this.maxHealth) // Heal by the bonus amount
+    this.maxHealth = Math.floor(this.maxHealth + healthBonus)
+    this.health = Math.min(Math.floor(this.health + healthBonus), this.maxHealth) // Heal by the bonus amount
+    
+    const oldRegenRate = this.healthRegenRate
     this.healthRegenRate += regenBonus
     
-    console.log(`Health upgraded: +${healthBonus} max health, +${regenBonus} regen rate`)
+    console.log(`Health upgraded: +${healthBonus} max health, +${regenBonus} regen rate (${oldRegenRate.toFixed(2)} -> ${this.healthRegenRate.toFixed(2)} HP/sec)`)
   }
   
   /**

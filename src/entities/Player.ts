@@ -274,7 +274,7 @@ export class Player implements Collidable {
   }
 
   takeDamage(amount: number): boolean {
-    this.health -= amount
+    this.health = Math.floor(this.health - amount)
     this.timeSinceLastDamage = 0 // Reset regen timer
     
     if (this.health <= 0) {
@@ -323,7 +323,13 @@ export class Player implements Collidable {
     // Only regenerate if enough time has passed and not at full health
     if (this.timeSinceLastDamage >= this.healthRegenDelay && this.health < this.maxHealth) {
       const regenAmount = this.healthRegenRate * (deltaTime / 60)
-      this.health = Math.min(this.maxHealth, this.health + regenAmount)
+      const oldHealth = this.health
+      this.health = Math.min(this.maxHealth, Math.floor(this.health + regenAmount))
+      
+      // Log regeneration every 2 seconds to avoid spam
+      if (Math.floor(this.timeSinceLastDamage) % 2 === 0 && this.health > oldHealth) {
+        console.log(`Health regenerating: ${oldHealth} -> ${this.health} (rate: ${this.healthRegenRate.toFixed(2)} HP/sec, time since damage: ${this.timeSinceLastDamage.toFixed(1)}s)`)
+      }
     }
   }
 
@@ -368,7 +374,7 @@ export class Player implements Collidable {
   }
 
   heal(amount: number): void {
-    this.health = Math.min(this.maxHealth, this.health + amount)
+    this.health = Math.min(this.maxHealth, Math.floor(this.health + amount))
   }
 
   /**
@@ -382,7 +388,12 @@ export class Player implements Collidable {
       this.health = Math.min(this.health + (healthBonus * 0.5), this.maxHealth)
     }
     
+    const oldRegenRate = this.healthRegenRate
     this.healthRegenRate = this.baseRegenRate + regenBonus
+    
+    if (regenBonus > 0) {
+      console.log(`Health regen upgraded: ${oldRegenRate.toFixed(2)} -> ${this.healthRegenRate.toFixed(2)} HP/sec`)
+    }
   }
 
   /**

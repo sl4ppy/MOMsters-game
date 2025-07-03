@@ -212,7 +212,7 @@ export class PlayerWithSprites implements Collidable {
     
     if (this.timeSinceLastDamage >= this.healthRegenDelay && this.health < this.maxHealth) {
       const regenAmount = this.healthRegenRate * (deltaTime / 60)
-      this.health = Math.min(this.maxHealth, this.health + regenAmount)
+      this.health = Math.min(this.maxHealth, Math.floor(this.health + regenAmount))
     }
   }
 
@@ -249,7 +249,7 @@ export class PlayerWithSprites implements Collidable {
   }
 
   takeDamage(amount: number): boolean {
-    this.health -= amount
+    this.health = Math.floor(this.health - amount)
     this.timeSinceLastDamage = 0
     
     if (this.health <= 0) {
@@ -284,7 +284,7 @@ export class PlayerWithSprites implements Collidable {
   }
 
   heal(amount: number): void {
-    this.health = Math.min(this.maxHealth, this.health + amount)
+    this.health = Math.min(this.maxHealth, Math.floor(this.health + amount))
   }
 
   // Getters

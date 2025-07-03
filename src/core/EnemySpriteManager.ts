@@ -10,11 +10,20 @@ export interface EnemySpriteConfig {
   collisionRadius: number
   xpValue: number
   scale?: number // Optional scale factor
+  customSprite?: string // Optional custom sprite path
+}
+
+// Custom sprite configuration for special enemies
+interface CustomSpriteConfig {
+  enemyId: number
+  spritePath: string
+  scale: number
 }
 
 export class EnemySpriteManager {
   private enemyAtlasTexture?: Texture
   private loaded: boolean = false
+  private customTextures: Map<number, Texture> = new Map()
   
   // Atlas configuration
   private readonly atlasPath = import.meta.env.BASE_URL + 'sprites/enemies_01.png'
@@ -22,6 +31,12 @@ export class EnemySpriteManager {
   private readonly tilesPerColumn = 3
   private readonly totalEnemies = this.tilesPerRow * this.tilesPerColumn // 30 enemies
   private readonly tileSize = 32 // Assuming 32x32 tiles in the atlas
+  
+  // Custom sprite configurations for special enemies
+  private readonly customSprites: CustomSpriteConfig[] = [
+    // Skull King boss uses chicken sprite at 3x scale
+    { enemyId: 28, spritePath: import.meta.env.BASE_URL + 'sprites/chicken_01.png', scale: 3.0 }
+  ]
   
   // Enemy configurations for all 30 enemy types
   private readonly enemyConfigs: EnemySpriteConfig[] = [
@@ -58,25 +73,48 @@ export class EnemySpriteManager {
     { id: 25, name: 'Ice Golem', health: 120, speed: 55, damage: 28, collisionRadius: 19, xpValue: 28 },
     { id: 26, name: 'Jawa', health: 20, speed: 110, damage: 7, collisionRadius: 9, xpValue: 6 },
     { id: 27, name: 'Mud Golem', health: 90, speed: 50, damage: 22, collisionRadius: 17, xpValue: 20 },
-    { id: 28, name: 'Skull', health: 25, speed: 95, damage: 11, collisionRadius: 11, xpValue: 8 },
+    // Skull King boss - enhanced stats for boss fight
+    { id: 28, name: 'Skull King', health: 500, speed: 60, damage: 50, collisionRadius: 25, xpValue: 100, scale: 3.0, customSprite: 'chicken_01.png' },
     { id: 29, name: 'PlasmaMan', health: 60, speed: 88, damage: 19, collisionRadius: 15, xpValue: 16 }
   ]
 
   constructor() {}
 
   /**
-   * Load the enemy sprite atlas
+   * Load the enemy sprite atlas and custom sprites
    */
   async loadEnemyAtlas(): Promise<void> {
     console.log('🦹 Loading enemy sprite atlas...')
     
     try {
+      // Load main atlas
       this.enemyAtlasTexture = await Assets.load(this.atlasPath)
+      
+      // Load custom sprites
+      await this.loadCustomSprites()
+      
       this.loaded = true
       console.log(`✅ Enemy atlas loaded successfully! (${this.totalEnemies} enemy types available)`)
     } catch (error) {
       console.error('❌ Error loading enemy atlas:', error)
       throw error
+    }
+  }
+
+  /**
+   * Load custom sprites for special enemies
+   */
+  private async loadCustomSprites(): Promise<void> {
+    console.log('🎨 Loading custom enemy sprites...')
+    
+    for (const customConfig of this.customSprites) {
+      try {
+        const texture = await Assets.load(customConfig.spritePath)
+        this.customTextures.set(customConfig.enemyId, texture)
+        console.log(`✅ Loaded custom sprite for enemy ${customConfig.enemyId}: ${customConfig.spritePath}`)
+      } catch (error) {
+        console.warn(`⚠️ Failed to load custom sprite for enemy ${customConfig.enemyId}:`, error)
+      }
     }
   }
 
@@ -94,6 +132,23 @@ export class EnemySpriteManager {
       return null
     }
 
+    // Check if this enemy has a custom sprite
+    const customTexture = this.customTextures.get(enemyId)
+    if (customTexture) {
+      const sprite = new Sprite(customTexture)
+      sprite.anchor.set(0.5, 0.5) // Center anchor
+      
+      // Apply custom scale if defined
+      const customConfig = this.customSprites.find(config => config.enemyId === enemyId)
+      if (customConfig) {
+        sprite.scale.set(customConfig.scale, customConfig.scale)
+        console.log(`🐔 Created custom sprite for enemy ${enemyId} at ${customConfig.scale}x scale`)
+      }
+      
+      return sprite
+    }
+
+    // Use atlas sprite for normal enemies
     // Calculate tile position in the atlas
     const row = Math.floor(enemyId / this.tilesPerRow)
     const col = enemyId % this.tilesPerRow

@@ -1,7 +1,11 @@
 import { Graphics, Sprite, Container } from 'pixi.js'
 import { Collidable, CollisionGroup } from '../core/CollisionManager'
-import { Player } from './Player'
 import { GemSpriteManager } from '../core/GemSpriteManager'
+
+// Interface for player objects that ExperienceOrb needs
+interface PlayerLike {
+  position: { x: number, y: number }
+}
 
 export class ExperienceOrb implements Collidable {
   public sprite: Container
@@ -12,10 +16,24 @@ export class ExperienceOrb implements Collidable {
   private visualSprite: Sprite | Graphics | null = null
   
   private xpValue: number
-  private magnetSpeed: number = 200 // Speed when being attracted
+  private magnetSpeed: number = 400 // Speed when being attracted (doubled for faster collection)
   private getMagnetRange: () => number // Function to get current magnet range
   private floatTime: number = 0 // For floating animation
   private isBeingAttracted: boolean = false
+  
+  // Arc/flow motion properties
+  private arcTime: number = 0 // Time for arc animation
+  private arcRadius: number = 0 // Current arc radius
+  private arcAngle: number = 0 // Current angle in the arc
+  private arcDirection: number = 1 // Direction of arc rotation (1 or -1)
+  private initialDistance: number = 0 // Distance when attraction started
+  private attractionStartTime: number = 0 // When attraction began
+  
+  // Easing curve properties
+  private originX: number = 0 // Original spawn position
+  private originY: number = 0 // Original spawn position
+  private easingTime: number = 0 // Time for easing animation
+  private easingDuration: number = 0.8 // How long the easing takes (seconds)
   
   // Callbacks
   public onCollected?: (xpValue: number) => void
@@ -26,9 +44,11 @@ export class ExperienceOrb implements Collidable {
     this.gemSpriteManager = gemSpriteManager
     this.getMagnetRange = getMagnetRange
     
-    // Set initial position
+    // Set initial position and store origin
     this.sprite.x = x
     this.sprite.y = y
+    this.originX = x
+    this.originY = y
     
     this.createSprite()
   }
@@ -93,7 +113,7 @@ export class ExperienceOrb implements Collidable {
   /**
    * Update orb behavior - floating animation and magnetic attraction
    */
-  update(deltaTime: number, player: Player): void {
+  update(deltaTime: number, player: PlayerLike): void {
     this.updateFloatingAnimation(deltaTime)
     this.updateMagneticAttraction(deltaTime, player)
   }
@@ -110,13 +130,12 @@ export class ExperienceOrb implements Collidable {
       this.sprite.y += floatOffset * 0.1
     }
     
+    // Always apply pulsing and rotation effects
     this.sprite.scale.set(pulseScale)
-    
-    // Gentle rotation
     this.sprite.rotation += 0.02
   }
 
-  private updateMagneticAttraction(deltaTime: number, player: Player): void {
+  private updateMagneticAttraction(deltaTime: number, player: PlayerLike): void {
     const playerPos = player.position
     const dx = playerPos.x - this.sprite.x
     const dy = playerPos.y - this.sprite.y
@@ -126,26 +145,91 @@ export class ExperienceOrb implements Collidable {
     
     // Check if player is within magnet range
     if (distance <= magnetRange) {
-      this.isBeingAttracted = true
+      if (!this.isBeingAttracted) {
+        // Just started being attracted - initialize arc properties
+        this.isBeingAttracted = true
+        this.attractionStartTime = this.floatTime
+        this.initialDistance = distance
+        this.arcTime = 0
+        this.easingTime = 0 // Reset easing time
+        // Arc radius scales with distance - longer distances get more pronounced arcs
+        this.arcRadius = Math.min(distance * 0.15, 30) // Reduced from 0.3 to 0.15, max 30px
+        this.arcAngle = Math.atan2(dy, dx) // Start angle toward player
+        this.arcDirection = Math.random() > 0.5 ? 1 : -1 // Random arc direction
+      }
+    } else {
+      // Stop being attracted if outside magnet range
+      this.isBeingAttracted = false
+      this.arcTime = 0
+      this.easingTime = 0
     }
     
     if (this.isBeingAttracted && distance > 0) {
-      // Move toward player with increasing speed as it gets closer
-      const moveSpeed = this.magnetSpeed * (deltaTime / 60)
-      const attractionStrength = Math.min(1, (magnetRange - distance) / magnetRange + 0.5)
+      // If very close to player, snap directly to player position
+      if (distance < 20) {
+        this.sprite.x = playerPos.x
+        this.sprite.y = playerPos.y
+        return
+      }
       
-      const moveX = (dx / distance) * moveSpeed * attractionStrength
-      const moveY = (dy / distance) * moveSpeed * attractionStrength
+      // Update arc time and easing time
+      this.arcTime += deltaTime / 60
+      this.easingTime += deltaTime / 60
       
+      // Calculate easing curve (ease-out cubic: t * (2 - t))
+      const easingProgress = Math.min(this.easingTime / this.easingDuration, 1)
+      const easingCurve = easingProgress * (2 - easingProgress) // Ease-out cubic
+      
+      // Calculate arc motion
+      const arcProgress = Math.min(this.arcTime * 2, 1) // Complete arc in 0.5 seconds
+      const arcCurve = Math.sin(arcProgress * Math.PI) // Smooth curve
+      
+      // Calculate the direct path to player
+      const normalizedDx = dx / distance
+      const normalizedDy = dy / distance
+      
+      // Calculate arc offset perpendicular to movement direction
+      const perpendicularX = -normalizedDy * this.arcDirection
+      const perpendicularY = normalizedDx * this.arcDirection
+      
+      // Combine direct movement with arc motion
+      const arcOffsetX = perpendicularX * this.arcRadius * arcCurve
+      const arcOffsetY = perpendicularY * this.arcRadius * arcCurve
+      
+      // Calculate base movement speed with easing acceleration
+      const baseMoveSpeed = this.magnetSpeed * 2.5
+      const moveSpeed = baseMoveSpeed * (deltaTime / 60)
+      
+      // Apply easing curve to speed - starts slow and accelerates
+      const easedSpeed = moveSpeed * (0.3 + easingCurve * 0.7) // Start at 30% speed, ramp to 100%
+      
+      // Attraction strength - stronger when closer to player
+      const attractionStrength = Math.max(0.6, 1.0 - (distance / magnetRange))
+      
+      // Apply arc-based movement with easing - reduced arc intensity
+      const moveX = (normalizedDx * easedSpeed * attractionStrength) + (arcOffsetX * 0.25) // Reduced from 0.5 to 0.25
+      const moveY = (normalizedDy * easedSpeed * attractionStrength) + (arcOffsetY * 0.25) // Reduced from 0.5 to 0.25
+      
+      // Apply movement
       this.sprite.x += moveX
       this.sprite.y += moveY
       
-      // Add visual effect when being attracted
-      this.sprite.alpha = 0.8 + Math.sin(this.floatTime * 8) * 0.2
+      // Add visual effects for flowing motion with easing
+      const flowPulse = 0.8 + Math.sin(this.floatTime * 12) * 0.2
+      this.sprite.alpha = flowPulse
       
-      // Debug: log if gem is moving away from player
-      if (Math.abs(dx) > 100 || Math.abs(dy) > 100) {
-        console.log(`XP gem moving away! Distance: ${distance.toFixed(1)}, Magnet range: ${magnetRange}, DX: ${dx.toFixed(1)}, DY: ${dy.toFixed(1)}`)
+      // Slight rotation during arc motion
+      this.sprite.rotation += this.arcDirection * 0.05
+      
+      // Safety check: if gem is moving away, force it back
+      const newDx = playerPos.x - this.sprite.x
+      const newDy = playerPos.y - this.sprite.y
+      const newDistance = Math.sqrt(newDx * newDx + newDy * newDy)
+      
+      if (newDistance > distance + 10) {
+        // Gem moved away from player, correct course
+        this.sprite.x = playerPos.x - normalizedDx * (distance * 0.9)
+        this.sprite.y = playerPos.y - normalizedDy * (distance * 0.9)
       }
     }
   }

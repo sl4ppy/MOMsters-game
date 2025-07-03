@@ -4,6 +4,8 @@ import { CollisionManager } from '../core/CollisionManager'
 import { Player } from '../entities/Player'
 import { Enemy } from '../entities/Enemy'
 import { BasicEnemy } from '../entities/enemies/BasicEnemy'
+import { BlobEnemy } from '../entities/enemies/BlobEnemy'
+import { ChompChestEnemy } from '../entities/enemies/ChompChestEnemy'
 import { EnemySpriteManager } from '../core/EnemySpriteManager'
 
 export class EnemySpawner {
@@ -14,22 +16,27 @@ export class EnemySpawner {
   private player: Player
   private enemySpriteManager: EnemySpriteManager
   
-  // Spawn settings
-  private baseSpawnRate: number = 2.0 // Enemies per second at start
-  private currentSpawnRate: number = 2.0
+  // Enhanced spawn settings
+  private baseSpawnRate: number = 1.5 // Enemies per second at start (reduced for better ramping)
+  private currentSpawnRate: number = 1.5
   private timeSinceLastSpawn: number = 0
   private maxEnemies: number = 50 // Limit for performance
   
-  // Difficulty scaling
-  private difficultyTimer: number = 0
-  private difficultyIncreaseInterval: number = 30 // Increase difficulty every 30 seconds
-  
-  // Progressive enemy spawning
+  // Wave progression system
   private gameTimer: number = 0
   private currentEnemyType: number = 0 // Current enemy type being spawned (0-29)
-  private enemyPhaseDuration: number = 50 // Seconds per enemy type (40-60 seconds average)
+  private enemyPhaseDuration: number = 60 // Seconds per enemy type
   private enemyPhaseTimer: number = 0
   private enemyProgressionEnabled: boolean = true
+  
+  // Per-enemy-type spawn rate ramping
+  private currentPhaseSpawnRate: number = 1.5 // Current phase's spawn rate
+  private phaseSpawnRateMultiplier: number = 1.0 // Multiplier for current phase
+  private maxPhaseSpawnRate: number = 8.0 // Maximum spawn rate for any phase
+  
+  // Progressive difficulty scaling
+  private globalDifficultyMultiplier: number = 1.0 // Increases with each phase
+  private difficultyIncreasePerPhase: number = 0.15 // Each phase starts 15% faster than previous
   
   // Callbacks
   public onEnemyKilled?: (enemy: Enemy, position: { x: number, y: number }) => void
@@ -47,8 +54,8 @@ export class EnemySpawner {
    */
   update(deltaTime: number): void {
     this.updateGameTimer(deltaTime)
-    this.updateDifficulty(deltaTime)
     this.updateEnemyProgression(deltaTime)
+    this.updatePhaseSpawnRate(deltaTime)
     this.updateSpawning(deltaTime)
     this.updateEnemies(deltaTime)
     this.cleanupDeadEnemies()
@@ -82,12 +89,21 @@ export class EnemySpawner {
     if (this.currentEnemyType < 29) {
       this.currentEnemyType++
       
+      // Increase global difficulty multiplier for each phase
+      this.globalDifficultyMultiplier += this.difficultyIncreasePerPhase
+      
+      // Calculate new phase spawn rate (each phase starts faster than the previous)
+      const basePhaseRate = this.baseSpawnRate * (1 + this.currentEnemyType * 0.1) // 10% increase per phase
+      this.currentPhaseSpawnRate = Math.min(this.maxPhaseSpawnRate, basePhaseRate)
+      
+      // Reset phase timer and calculate new duration
+      this.enemyPhaseTimer = 0
+      this.enemyPhaseDuration = 50 + Math.random() * 20 // 50-70 seconds per phase
+      
       const enemyConfig = this.enemySpriteManager.getEnemyConfig(this.currentEnemyType)
       if (enemyConfig) {
         console.log(`🎯 Enemy progression: Now spawning ${enemyConfig.name} (Type ${this.currentEnemyType})`)
-        
-        // Randomize the phase duration for next enemy (40-60 seconds)
-        this.enemyPhaseDuration = 40 + Math.random() * 20
+        console.log(`📈 Phase spawn rate: ${this.currentPhaseSpawnRate.toFixed(1)}/s, Global difficulty: ${this.globalDifficultyMultiplier.toFixed(2)}x`)
       }
     } else {
       // All enemy types have been introduced
@@ -97,18 +113,19 @@ export class EnemySpawner {
   }
 
   /**
-   * Update difficulty scaling over time
+   * Update spawn rate ramping within the current enemy phase
    */
-  private updateDifficulty(deltaTime: number): void {
-    this.difficultyTimer += deltaTime / 60 // Convert to seconds
+  private updatePhaseSpawnRate(deltaTime: number): void {
+    // Calculate how far we are into the current phase (0.0 to 1.0)
+    const phaseProgress = this.enemyPhaseTimer / this.enemyPhaseDuration
     
-    if (this.difficultyTimer >= this.difficultyIncreaseInterval) {
-      this.difficultyTimer = 0
-      this.currentSpawnRate = Math.min(this.baseSpawnRate * 2.5, this.currentSpawnRate * 1.2)
-      this.maxEnemies = Math.min(100, this.maxEnemies + 5)
-      
-      console.log(`Difficulty increased! Spawn rate: ${this.currentSpawnRate.toFixed(1)}, Max enemies: ${this.maxEnemies}`)
-    }
+    // Ramp up spawn rate over the course of the phase
+    // Start at base rate, end at max rate for this phase
+    const targetSpawnRate = this.currentPhaseSpawnRate * this.phaseSpawnRateMultiplier
+    const rampedSpawnRate = this.baseSpawnRate + (targetSpawnRate - this.baseSpawnRate) * phaseProgress
+    
+    // Apply global difficulty multiplier
+    this.currentSpawnRate = Math.min(this.maxPhaseSpawnRate, rampedSpawnRate * this.globalDifficultyMultiplier)
   }
 
   /**
@@ -137,7 +154,18 @@ export class EnemySpawner {
       return
     }
     
-    const enemy = new BasicEnemy(this.enemySpriteManager, this.currentEnemyType)
+    // Use specialized enemy classes for specific enemy types
+    let enemy: Enemy
+    if (this.currentEnemyType === 0) {
+      // Use BlobEnemy for the blob (enemy type 0)
+      enemy = new BlobEnemy(this.enemySpriteManager)
+    } else if (this.currentEnemyType === 6) {
+      // Use ChompChestEnemy for the ChompChest (enemy type 6)
+      enemy = new ChompChestEnemy(this.enemySpriteManager)
+    } else {
+      // Use BasicEnemy for all other enemy types
+      enemy = new BasicEnemy(this.enemySpriteManager, this.currentEnemyType)
+    }
     
     // Get spawn position at screen edge
     const spawnPos = this.getSpawnPosition()
@@ -237,11 +265,22 @@ export class EnemySpawner {
   /**
    * Get current enemy stats
    */
-  getStats(): { count: number, spawnRate: number, maxEnemies: number } {
+  getStats(): { 
+    count: number, 
+    spawnRate: number, 
+    maxEnemies: number,
+    phaseSpawnRate: number,
+    globalDifficulty: number,
+    phaseProgress: number
+  } {
+    const phaseProgress = this.enemyPhaseTimer / this.enemyPhaseDuration
     return {
       count: this.enemies.length,
       spawnRate: this.currentSpawnRate,
-      maxEnemies: this.maxEnemies
+      maxEnemies: this.maxEnemies,
+      phaseSpawnRate: this.currentPhaseSpawnRate,
+      globalDifficulty: this.globalDifficultyMultiplier,
+      phaseProgress: phaseProgress
     }
   }
 
@@ -254,16 +293,25 @@ export class EnemySpawner {
     gameTime: number, 
     phaseTimer: number, 
     phaseDuration: number,
-    progressionEnabled: boolean 
+    progressionEnabled: boolean,
+    phaseProgress: number,
+    currentSpawnRate: number,
+    phaseSpawnRate: number,
+    globalDifficulty: number
   } {
     const enemyConfig = this.enemySpriteManager.getEnemyConfig(this.currentEnemyType)
+    const phaseProgress = this.enemyPhaseTimer / this.enemyPhaseDuration
     return {
       currentEnemyType: this.currentEnemyType,
       currentEnemyName: enemyConfig?.name || 'Unknown',
       gameTime: this.gameTimer,
       phaseTimer: this.enemyPhaseTimer,
       phaseDuration: this.enemyPhaseDuration,
-      progressionEnabled: this.enemyProgressionEnabled
+      progressionEnabled: this.enemyProgressionEnabled,
+      phaseProgress: phaseProgress,
+      currentSpawnRate: this.currentSpawnRate,
+      phaseSpawnRate: this.currentPhaseSpawnRate,
+      globalDifficulty: this.globalDifficultyMultiplier
     }
   }
 
@@ -291,6 +339,28 @@ export class EnemySpawner {
    * Set spawn rate manually (for testing or power-ups)
    */
   setSpawnRate(rate: number): void {
-    this.currentSpawnRate = Math.max(0.1, rate)
+    this.currentSpawnRate = Math.max(0.1, Math.min(this.maxPhaseSpawnRate, rate))
+  }
+
+  /**
+   * Get wave information for UI display
+   */
+  getWaveInfo(): {
+    currentWave: number,
+    waveName: string,
+    waveProgress: number,
+    spawnRate: number,
+    difficulty: number
+  } {
+    const enemyConfig = this.enemySpriteManager.getEnemyConfig(this.currentEnemyType)
+    const waveProgress = this.enemyPhaseTimer / this.enemyPhaseDuration
+    
+    return {
+      currentWave: this.currentEnemyType + 1,
+      waveName: enemyConfig?.name || 'Unknown',
+      waveProgress: waveProgress,
+      spawnRate: this.currentSpawnRate,
+      difficulty: this.globalDifficultyMultiplier
+    }
   }
 } 

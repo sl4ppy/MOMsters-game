@@ -7,7 +7,7 @@ import { CollisionManager } from './CollisionManager'
 import { TerrainManager, TerrainTile, DecorationTile } from './TerrainManager'
 import { EnemySpriteManager } from './EnemySpriteManager'
 import { GemSpriteManager } from './GemSpriteManager'
-import { EnemySpawner } from '../systems/EnemySpawner'
+import { WaveSpawner } from '../systems/WaveSpawner'
 import { WeaponSystem } from '../systems/WeaponSystem'
 import { LevelingSystem } from '../systems/LevelingSystem'
 import { ExperienceOrb } from '../entities/ExperienceOrb'
@@ -26,7 +26,7 @@ export class Game {
   private collisionManager: CollisionManager
   private enemySpriteManager: EnemySpriteManager
   private gemSpriteManager: GemSpriteManager
-  private enemySpawner: EnemySpawner
+  private enemySpawner: WaveSpawner
   private weaponSystem: WeaponSystem
   private levelingSystem: LevelingSystem
   private terrainManager: TerrainManager
@@ -41,6 +41,11 @@ export class Game {
   private isGameOver: boolean = false
   private isPaused: boolean = false // For level up screen
   private showingTitleScreen: boolean = true // Start with title screen
+  
+  // Debug system
+  private debugMode: boolean = false
+  private debugWeaponIndex: number = 0
+  private debugWeapons: string[] = []
 
   constructor(app: Application) {
     this.app = app
@@ -52,7 +57,7 @@ export class Game {
     this.collisionManager = new CollisionManager()
     this.enemySpriteManager = new EnemySpriteManager()
     this.gemSpriteManager = new GemSpriteManager(this.app)
-    this.enemySpawner = new EnemySpawner(this.gameContainer, this.camera, this.collisionManager, this.player, this.enemySpriteManager)
+    this.enemySpawner = new WaveSpawner(this.gameContainer, this.camera, this.collisionManager, this.player, this.enemySpriteManager)
     this.weaponSystem = new WeaponSystem(this.gameContainer, this.collisionManager, this.player, this.enemySpawner)
     this.levelingSystem = new LevelingSystem()
     this.terrainManager = new TerrainManager()
@@ -85,6 +90,9 @@ export class Game {
     // Initialize systems
     this.inputManager.init()
     
+    // Initialize debug system
+    this.initializeDebugSystem()
+    
     // Initialize player
     this.player.init()
     this.gameContainer.addChild(this.player.sprite)
@@ -114,6 +122,18 @@ export class Game {
       this.dropExperienceOrb(position.x, position.y, enemy.experienceValue || 1)
     }
     
+    // Set up wave change callback
+    this.enemySpawner.onWaveChanged = (waveIndex, waveConfig) => {
+      console.log(`🌊 Wave ${waveIndex + 1} Started: ${waveConfig.enemies.join(', ')} (${waveConfig.event})`)
+      // TODO: Add visual notification system for wave changes
+    }
+    
+    // Set up game completion callback
+    this.enemySpawner.onGameComplete = () => {
+      console.log('🎉 Game Complete! You survived all 30 minutes!')
+      // TODO: Add victory screen
+    }
+    
     // Set up title screen callback
     console.log('Setting up title screen callback...')
     this.titleScreen.onStartGame = () => {
@@ -138,6 +158,12 @@ export class Game {
     this.hud.getContainer().visible = false
     
     console.log('Game initialized - title screen ready!')
+  }
+
+  private initializeDebugSystem(): void {
+    // Get all available weapons for debug cycling
+    this.debugWeapons = this.weaponSystem.getAvailableWeapons().map(weapon => weapon.type)
+    console.log('Debug system initialized with weapons:', this.debugWeapons)
   }
 
   start(): void {
@@ -262,7 +288,7 @@ export class Game {
     
     // Set up level up screen callback
     this.levelUpScreen.onUpgradeSelected = (upgradeId: string) => {
-      this.levelingSystem.selectUpgrade(upgradeId)
+      this.levelingSystem.selectUpgrade(upgradeId, this.weaponSystem)
       this.isPaused = false
       
       // Apply upgrades to player and weapon system
@@ -313,8 +339,6 @@ export class Game {
       this.experienceOrbs.splice(index, 1)
     }
   }
-
-
 
   private createTestTerrain(): void {
     // Wait a bit for the terrain manager to load, then create procedural terrain
@@ -383,39 +407,80 @@ export class Game {
     }, 1000) // Wait 1 second for loading
   }
 
+  private handleDebugInput(): void {
+    // Toggle debug mode with backtick key
+    if (this.inputManager.isKeyJustPressed('Backquote')) {
+      this.debugMode = !this.debugMode
+      console.log(`Debug mode ${this.debugMode ? 'ENABLED' : 'DISABLED'}`)
+      
+      if (this.debugMode) {
+        // Show debug mode notification
+        this.hud.showDebugModeNotification()
+      } else {
+        // When exiting debug mode, reset to starting weapon (fireball)
+        this.weaponSystem.clear()
+        console.log('Debug mode disabled - reset to starting fireball weapon')
+      }
+    }
+    
+    // Only handle weapon cycling in debug mode
+    if (this.debugMode) {
+      // Cycle to next weapon with ]
+      if (this.inputManager.isKeyJustPressed('BracketRight')) {
+        this.debugWeaponIndex = (this.debugWeaponIndex + 1) % this.debugWeapons.length
+        this.cycleToWeapon(this.debugWeapons[this.debugWeaponIndex])
+        console.log(`Debug: Switched to weapon ${this.debugWeapons[this.debugWeaponIndex]}`)
+        this.inputManager.clearJustPressedKey('BracketRight')
+      }
+      
+      // Cycle to previous weapon with [
+      if (this.inputManager.isKeyJustPressed('BracketLeft')) {
+        this.debugWeaponIndex = (this.debugWeaponIndex - 1 + this.debugWeapons.length) % this.debugWeapons.length
+        this.cycleToWeapon(this.debugWeapons[this.debugWeaponIndex])
+        console.log(`Debug: Switched to weapon ${this.debugWeapons[this.debugWeaponIndex]}`)
+        this.inputManager.clearJustPressedKey('BracketLeft')
+      }
+    }
+  }
 
+  private cycleToWeapon(weaponType: string): void {
+    // Clear all active weapons
+    this.weaponSystem.clear()
+    
+    // Add only the selected weapon
+    this.weaponSystem.addWeapon(weaponType as any)
+    
+    // Show weapon name in HUD
+    this.hud.showWeaponNotification(weaponType)
+  }
 
   private update(deltaTime: number): void {
-    // Update game systems first
+    // Update input manager first
     this.inputManager.update()
     
-    // Debug: Always log the current state so we can see what's happening
-    console.log('Game update - showingTitleScreen:', this.showingTitleScreen, 'isRunning:', this.isRunning, 'isGameOver:', this.isGameOver)
+    // Handle debug input first
+    this.handleDebugInput()
     
-    // Handle title screen state
+    // Handle different game states
     if (this.showingTitleScreen) {
-      console.log('Updating title screen... titleScreen.visible:', this.titleScreen.visible)
       this.titleScreen.update(deltaTime, this.inputManager)
       this.inputManager.clearJustPressed()
       return
     }
     
-    // Handle game over state
     if (this.isGameOver) {
       this.updateGameOverState()
-      // Clear just-pressed keys after handling game over input
       this.inputManager.clearJustPressed()
       return
     }
     
-    if (!this.isRunning) return
-    
-    // Handle level up screen
     if (this.isPaused) {
       this.levelUpScreen.update(this.inputManager)
       this.inputManager.clearJustPressed()
       return
     }
+    
+    if (!this.isRunning) return
     
     // Update player (now using much larger world bounds since camera handles viewport)
     const worldSize = 2000 // Large world size
@@ -442,9 +507,6 @@ export class Game {
     
     // Update game state
     this.state.update(deltaTime)
-    
-    // Clear just-pressed keys at end of frame
-    this.inputManager.clearJustPressed()
   }
 
   /**
@@ -478,7 +540,7 @@ export class Game {
     return this.collisionManager
   }
 
-  get enemies(): EnemySpawner {
+  get enemies(): WaveSpawner {
     return this.enemySpawner
   }
 

@@ -20,18 +20,24 @@ export class Projectile implements Collidable {
   private isActive: boolean = true
   private pierceCount: number = 0
   private maxPierce: number = 0
+  private weaponType: string = 'fireball' // Default weapon type
+  
+  // Rotation for spinning weapons
+  private rotationSpeed: number = 0 // Radians per second
+  private currentRotation: number = 0
   
   // Callbacks
   public onHitTarget?: (target: Collidable) => void
   public onExpired?: () => void
 
-  constructor(x: number, y: number, targetX: number, targetY: number, speed: number = 300, damage: number = 10, pierce: number = 0) {
+  constructor(x: number, y: number, targetX: number, targetY: number, speed: number = 300, damage: number = 10, pierce: number = 0, weaponType: string = 'fireball') {
     this.sprite = new Container()
     this._speed = speed
     this.damage = damage
     this.lifetime = 0
     this.maxLifetime = 3 // 3 seconds max flight time
     this.maxPierce = pierce
+    this.weaponType = weaponType
     
     // Set initial position
     this.sprite.x = x
@@ -54,6 +60,9 @@ export class Projectile implements Collidable {
     
     this.createSprite()
     
+    // Set rotation speed for spinning weapons
+    this.setRotationSpeed()
+    
     // Set initial rotation based on velocity direction
     this.updateRotation()
   }
@@ -62,8 +71,22 @@ export class Projectile implements Collidable {
     // Clear any existing children
     this.sprite.removeChildren()
     
-    // Try to load fireball sprite
-    this.loadFireballSprite()
+    // Load sprite based on weapon type
+    switch (this.weaponType) {
+      case 'axe':
+        this.loadAxeSprite()
+        break
+      case 'knife':
+        this.loadKnifeSprite()
+        break
+      case 'rune_tracer':
+        this.loadRuneTracerSprite()
+        break
+      case 'fireball':
+      default:
+        this.loadFireballSprite()
+        break
+    }
   }
   
   private async loadFireballSprite(): Promise<void> {
@@ -103,6 +126,84 @@ export class Projectile implements Collidable {
       this.createFallbackGraphics()
     }
   }
+
+  private async loadAxeSprite(): Promise<void> {
+    try {
+      // Try to load the axe texture
+      const texture = await import('pixi.js').then(pixi => pixi.Assets.load(import.meta.env.BASE_URL + 'sprites/axe_1.png'))
+      
+      // Create single frame sprite for axe
+      const sprite = new Sprite(texture)
+      
+      // Scale and center the sprite
+      sprite.width = this.collisionRadius * 3
+      sprite.height = this.collisionRadius * 3
+      sprite.anchor.set(0.5, 0.5)
+      
+      this.visualSprite = sprite
+      this.sprite.addChild(sprite)
+      
+      console.log('Created axe sprite')
+      
+    } catch (error) {
+      // Fallback to graphics if axe sprite fails to load
+      console.log('Axe sprite not found, using fallback graphics:', error)
+      this.createFallbackGraphics()
+    }
+  }
+
+  private async loadKnifeSprite(): Promise<void> {
+    try {
+      // Try to load the knife texture
+      const texture = await import('pixi.js').then(pixi => pixi.Assets.load(import.meta.env.BASE_URL + 'sprites/knife_1.png'))
+      
+      // Create single frame sprite for knife
+      const sprite = new Sprite(texture)
+      
+      // Scale and center the sprite - 50% smaller than before
+      sprite.width = this.collisionRadius * 1.25
+      sprite.height = this.collisionRadius * 1.25
+      sprite.anchor.set(0.5, 0.5)
+      
+      this.visualSprite = sprite
+      this.sprite.addChild(sprite)
+      
+      console.log('Created knife sprite')
+      
+    } catch (error) {
+      // Fallback to graphics if knife sprite fails to load
+      console.log('Knife sprite not found, using fallback graphics:', error)
+      this.createFallbackGraphics()
+    }
+  }
+
+  private async loadRuneTracerSprite(): Promise<void> {
+    try {
+      // Try to load one of the beam sprites for the eye beam projectiles
+      const texture = await import('pixi.js').then(pixi => pixi.Assets.load(import.meta.env.BASE_URL + 'sprites/beam_01_origin.png'))
+      
+      // Create single frame sprite for rune tracer
+      const sprite = new Sprite(texture)
+      
+      // Scale and center the sprite - make it smaller and more beam-like
+      sprite.width = this.collisionRadius * 2
+      sprite.height = this.collisionRadius * 2
+      sprite.anchor.set(0.5, 0.5)
+      
+      // Give it a blue tint to differentiate from fireballs
+      sprite.tint = 0x4488ff
+      
+      this.visualSprite = sprite
+      this.sprite.addChild(sprite)
+      
+      console.log('Created rune tracer sprite')
+      
+    } catch (error) {
+      // Fallback to custom graphics for rune tracer if beam sprite fails to load
+      console.log('Beam sprite not found, using custom rune tracer graphics:', error)
+      this.createRuneTracerFallbackGraphics()
+    }
+  }
   
   private createFallbackGraphics(): void {
     const graphics = new Graphics()
@@ -125,6 +226,43 @@ export class Projectile implements Collidable {
     this.sprite.addChild(graphics)
   }
 
+  private createRuneTracerFallbackGraphics(): void {
+    const graphics = new Graphics()
+    
+    // Create a laser-like beam projectile - elongated blue shape
+    graphics.beginFill(0x4488ff) // Blue color for eye beam
+    graphics.drawEllipse(0, 0, this.collisionRadius * 1.5, this.collisionRadius * 0.5) // Elongated
+    graphics.endFill()
+    
+    // Add bright white core
+    graphics.beginFill(0xffffff) // White core
+    graphics.drawEllipse(0, 0, this.collisionRadius * 1.2, this.collisionRadius * 0.3)
+    graphics.endFill()
+    
+    // Add energy trail effect
+    graphics.beginFill(0x4488ff, 0.3) // Semi-transparent blue trail
+    graphics.drawEllipse(-this.collisionRadius, 0, this.collisionRadius * 0.8, this.collisionRadius * 0.3)
+    graphics.endFill()
+    
+    this.visualSprite = graphics
+    this.sprite.addChild(graphics)
+  }
+
+  private setRotationSpeed(): void {
+    // Set rotation speed for spinning weapons (in radians per second)
+    switch (this.weaponType) {
+      case 'axe':
+        this.rotationSpeed = Math.PI * 4 // 2 full rotations per second
+        break
+      case 'knife':
+        this.rotationSpeed = Math.PI * 6 // 3 full rotations per second
+        break
+      default:
+        this.rotationSpeed = 0 // No rotation for other weapons
+        break
+    }
+  }
+
   /**
    * Update projectile movement and lifetime
    */
@@ -139,6 +277,14 @@ export class Projectile implements Collidable {
     
     this.sprite.x += frameVelocity.x
     this.sprite.y += frameVelocity.y
+    
+    // Update rotation for spinning weapons
+    if (this.rotationSpeed > 0) {
+      this.currentRotation += this.rotationSpeed * (deltaTime / 60)
+      if (this.visualSprite) {
+        this.visualSprite.rotation = this.currentRotation
+      }
+    }
     
     // Update lifetime
     this.lifetime += deltaTime / 60 // Convert to seconds
@@ -174,9 +320,6 @@ export class Projectile implements Collidable {
       // Show new frame
       this.animationFrames[this.currentFrame].visible = true
       this.visualSprite = this.animationFrames[this.currentFrame]
-      
-      // Debug: log frame changes
-      console.log(`Fireball frame: ${this.currentFrame}`)
     }
     
     // Update rotation to face the direction of travel
@@ -186,12 +329,15 @@ export class Projectile implements Collidable {
   private updateRotation(): void {
     if (this.animationFrames.length === 0) return
     
-    // Calculate the angle from the velocity vector
-    const angle = Math.atan2(this.velocity.y, this.velocity.x)
-    
-    // Apply the rotation to all animation frames
-    for (const frame of this.animationFrames) {
-      frame.rotation = angle
+    // Only apply directional rotation for non-spinning weapons
+    if (this.rotationSpeed === 0) {
+      // Calculate the angle from the velocity vector
+      const angle = Math.atan2(this.velocity.y, this.velocity.x)
+      
+      // Apply the rotation to all animation frames
+      for (const frame of this.animationFrames) {
+        frame.rotation = angle
+      }
     }
   }
 
@@ -200,8 +346,8 @@ export class Projectile implements Collidable {
     const agePercent = this.lifetime / this.maxLifetime
     this.sprite.alpha = 1.0 - (agePercent * 0.3) // Fade to 70% opacity
     
-    // Update rotation for fallback graphics as well
-    if (this.visualSprite && this.animationFrames.length === 0) {
+    // Update rotation for fallback graphics only if not spinning
+    if (this.visualSprite && this.animationFrames.length === 0 && this.rotationSpeed === 0) {
       const angle = Math.atan2(this.velocity.y, this.velocity.x)
       this.visualSprite.rotation = angle
     }

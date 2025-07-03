@@ -1,8 +1,14 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js'
-import { Player } from '../entities/Player'
-import { EnemySpawner } from '../systems/EnemySpawner'
+import { WaveSpawner } from '../systems/WaveSpawner'
 import { WeaponSystem } from '../systems/WeaponSystem'
 import { LevelingSystem } from '../systems/LevelingSystem'
+
+// Interface for player objects that the HUD needs
+interface PlayerLike {
+  currentHealth: number
+  maximumHealth: number
+  healthPercent: number
+}
 
 export class HUD {
   private container: Container
@@ -27,6 +33,8 @@ export class HUD {
   
   // Survival timer
   private survivalTime: number = 0
+
+  private currentWeaponNotification?: Text
 
   constructor(screenWidth: number, screenHeight: number) {
     this.container = new Container()
@@ -147,7 +155,7 @@ export class HUD {
   /**
    * Update HUD with current game state
    */
-  update(deltaTime: number, player: Player, enemySpawner: EnemySpawner, weaponSystem?: WeaponSystem, levelingSystem?: LevelingSystem): void {
+  update(deltaTime: number, player: PlayerLike, enemySpawner: WaveSpawner, weaponSystem?: WeaponSystem, levelingSystem?: LevelingSystem): void {
     this.updateSurvivalTime(deltaTime)
     this.updateHealthBar(player)
     this.updateStats(enemySpawner)
@@ -168,7 +176,7 @@ export class HUD {
     this.timeText.text = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
-  private updateHealthBar(player: Player): void {
+  private updateHealthBar(player: PlayerLike): void {
     const healthPercent = player.healthPercent
     const maxWidth = 200
     const currentWidth = maxWidth * healthPercent
@@ -200,9 +208,22 @@ export class HUD {
     }
   }
 
-  private updateStats(enemySpawner: EnemySpawner): void {
+  private updateStats(enemySpawner: WaveSpawner): void {
     const stats = enemySpawner.getStats()
-    this.statsText.text = `Enemies: ${stats.count} | Spawn Rate: ${stats.spawnRate.toFixed(1)}/s`
+    const waveInfo = enemySpawner.getWaveInfo()
+    const progressionInfo = enemySpawner.getProgressionInfo()
+    
+    // Format wave progress as percentage
+    const waveProgress = Math.round(waveInfo.waveProgress * 100)
+    
+    // Format time remaining
+    const timeRemaining = Math.max(0, waveInfo.timeRemaining)
+    const minutes = Math.floor(timeRemaining)
+    const seconds = Math.floor((timeRemaining % 1) * 60)
+    
+    this.statsText.text = `Wave ${waveInfo.currentWave}/${enemySpawner.getTotalWaves()}: ${waveInfo.waveName} (${waveProgress}%)\n` +
+                         `Time: ${minutes}:${seconds.toString().padStart(2, '0')} | Event: ${waveInfo.event}\n` +
+                         `Enemies: ${stats.count}/${stats.maxEnemies} | Spawn Rate: ${stats.spawnRate.toFixed(1)}/s`
   }
 
   private updateWeaponStats(weaponSystem: WeaponSystem): void {
@@ -285,5 +306,53 @@ export class HUD {
     this.survivalTime = 0
     this.damageEffectTimer = 0
     this.damageOverlay.visible = false
+  }
+
+  showDebugModeNotification(): void {
+    console.log('🔧 DEBUG MODE ACTIVATED')
+    // Create a temporary notification text
+    const debugText = new Text('🔧 DEBUG MODE ACTIVATED', {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 0xff0000,
+      fontWeight: 'bold'
+    })
+    debugText.x = this.screenWidth / 2 - 150
+    debugText.y = this.screenHeight / 2 - 50
+    this.container.addChild(debugText)
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      if (this.container.children.includes(debugText)) {
+        this.container.removeChild(debugText)
+      }
+    }, 3000)
+  }
+
+  showWeaponNotification(weaponType: string): void {
+    // Remove previous notification if it exists
+    if (this.currentWeaponNotification && this.container.children.includes(this.currentWeaponNotification)) {
+      this.container.removeChild(this.currentWeaponNotification)
+      this.currentWeaponNotification.destroy()
+    }
+    // Create a new notification text
+    const weaponText = new Text(`🔫 ${weaponType.toUpperCase()}`, {
+      fontFamily: 'Arial',
+      fontSize: 20,
+      fill: 0x00ff00,
+      fontWeight: 'bold'
+    })
+    weaponText.x = this.screenWidth / 2 - 100
+    weaponText.y = this.screenHeight / 2 - 30
+    this.container.addChild(weaponText)
+    this.currentWeaponNotification = weaponText
+    // Remove after 2 seconds
+    setTimeout(() => {
+      if (this.currentWeaponNotification === weaponText && this.container.children.includes(weaponText)) {
+        this.container.removeChild(weaponText)
+        weaponText.destroy()
+        this.currentWeaponNotification = undefined
+      }
+    }, 2000)
   }
 } 

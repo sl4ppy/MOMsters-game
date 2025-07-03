@@ -57,7 +57,25 @@ export abstract class Enemy implements Collidable {
       const moveSpeed = this.speed * (deltaTime / 60)
       this.sprite.x += (dx / distance) * moveSpeed
       this.sprite.y += (dy / distance) * moveSpeed
+      
+      // Update enemy orientation to face direction of travel
+      this.updateRotation(dx, dy)
     }
+  }
+
+  /**
+   * Update enemy orientation to face direction of travel (horizontal flip)
+   */
+  protected updateRotation(dx: number, dy: number): void {
+    // Keep sprite upright, only flip horizontally based on movement direction
+    if (dx < 0) {
+      // Moving left - flip horizontally
+      this.sprite.scale.x = -1
+    } else if (dx > 0) {
+      // Moving right - normal orientation
+      this.sprite.scale.x = 1
+    }
+    // If dx is 0, keep current orientation
   }
 
   /**
@@ -85,7 +103,7 @@ export abstract class Enemy implements Collidable {
   takeDamage(amount: number): boolean {
     if (!this.isAlive) return false
     
-    this.health -= amount
+    this.health = Math.floor(this.health - amount)
     
     if (this.health <= 0) {
       this.health = 0

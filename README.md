@@ -4,25 +4,59 @@
 
 A browser-based roguelike survival game built with PixiJS and TypeScript, inspired by Vampire Survivors.
 
-**✨ Now with 30 unique enemies, animated projectiles, and a Godzilla player character!**
+**✨ Now with 30 unique enemies, wave-based spawning system, and a Giant Chicken King boss!**
 
 ---
 
 ## 🆕 Major Features
-- **30 unique enemy types** (see full list below), phased in one at a time every 40-60 seconds
+- **Wave-Based Survival Mode**: 15.5-minute campaign with 21 distinct waves
+- **30 unique enemy types** with strategic wave progression
+- **Special Wave Events**: Circle Formation, Boss Events, Swarm Attacks, Final Assault
+- **Overlapping Waves**: 30-second overlaps create dynamic multi-enemy encounters
+- **Giant Chicken King Boss**: Epic final boss with custom sprite at 3x scale
+- **Enhanced HUD**: Real-time wave information, progress tracking, and event notifications
+- **Custom Sprite System**: Support for special enemy sprites beyond the main atlas
 - **Animated fireball projectile** as the main attack
 - **2 XP gem types**: 1XP (green), 10XP (orange)
-- **Progressive enemy spawning**: Only one enemy type spawns at a time, advancing every 40-60s
 - **Godzilla player character** (default, no fallback)
 - **Upgrade system**: Health, speed, magnet range, attack interval, piercing, and more
 - **New terrain and decoration systems** for richer environments
 
 ---
 
+## 🌊 Wave System Overview
+
+### 📅 **15.5-Minute Survival Campaign**
+- **21 Progressive Waves** (0-15.5 minutes)
+- **Overlapping Design**: Each wave starts 30 seconds before the previous ends
+- **Dynamic Difficulty**: Spawn rates increase from 50/s to 275/s
+- **Strategic Progression**: Enemy types introduced at optimal challenge points
+
+### 🎭 **Special Wave Events**
+- **Circle Formation**: Enemies spawn in circles around the player
+- **Boss Events**: Single powerful enemies (Green Dragon, Void, Skull King)
+- **Swarm Attacks**: Burst spawning of multiple enemies
+- **Final Assault**: Multi-point spawning with maximum intensity
+
+### 🐔 **Epic Boss Battles**
+- **Wave 7** (4.5-5.25 min): Green Dragon Boss
+- **Wave 14** (9.5-10.25 min): Void Boss  
+- **Wave 21** (14.5-15.5 min): **Giant Chicken King** (Final Boss)
+
+---
+
 ## 👾 Enemy Roster (All 30 Types)
-Blob, Goblin, Plant, Hobgoblin, Mermaid, Gargoyle, ChompChest, TreeEnt, Reaper, Palomino,
-Green Dragon, Red Dragon, Blue Dragon, Skeleton, Mollusk, Banshee, Floating Maw, Cacodemon, Sea Hag, Demon,
+**Early Game (Waves 1-6):**
+Blob, Goblin, Plant, Hobgoblin, Mermaid, Gargoyle, ChompChest, TreeEnt, Reaper, Palomino
+
+**Mid Game (Waves 7-14):**
+Green Dragon, Red Dragon, Blue Dragon, Skeleton, Mollusk, Banshee, Floating Maw, Cacodemon, Sea Hag, Demon
+
+**Late Game (Waves 15-21):**
 Centaur, Green Orc, Golden Orc, Void, Golem, Ice Golem, Jawa, Mud Golem, Skull, PlasmaMan
+
+**Final Boss:**
+**🐔 Giant Chicken King** - 500 HP, 50 Damage, 3x Scale, 100 XP Reward
 
 ---
 
@@ -54,7 +88,13 @@ Centaur, Green Orc, Golden Orc, Void, Golem, Ice Golem, Jawa, Mud Golem, Skull, 
 
 ## 🎯 Completed Features
 - [x] **Core Game Engine** (PixiJS, TypeScript, camera, collision, etc)
-- [x] **30 unique enemy types** with progressive spawning
+- [x] **Wave-Based Spawning System** (21 waves, 15.5-minute campaign)
+- [x] **Special Wave Events** (Circle Formation, Boss Events, Swarm Attacks, Final Assault)
+- [x] **Overlapping Wave Design** (30-second overlaps for dynamic gameplay)
+- [x] **30 unique enemy types** with strategic wave progression
+- [x] **Custom Sprite System** (special enemies can use individual sprites)
+- [x] **Giant Chicken King Boss** (final boss with custom sprite and 3x scale)
+- [x] **Enhanced HUD** (wave info, progress tracking, event notifications)
 - [x] **Animated fireball projectile** system
 - [x] **Godzilla player character** (default, no fallback)
 - [x] **Experience & Leveling** (XP gems, upgrades)
@@ -86,6 +126,26 @@ Centaur, Green Orc, Golden Orc, Void, Golem, Ice Golem, Jawa, Mud Golem, Skull, 
 ## 🎮 Game Overview
 
 This is a 2D top-down survival game where the player character automatically fights waves of enemies while collecting experience, leveling up, and choosing powerful upgrades to survive as long as possible.
+
+### 🌊 Wave System Details
+
+The game features a sophisticated wave-based spawning system that creates a 15.5-minute survival campaign:
+
+#### **Wave Progression Examples:**
+- **Wave 1** (0-1 min): Blob enemies only - 50/s spawn rate
+- **Wave 2** (0.5-2 min): Goblins & Plants join - 60/s spawn rate  
+- **Wave 4** (2-3 min): Mermaid & Gargoyle Circle Formation - 90/s spawn rate
+- **Wave 7** (4.5-5.25 min): Green Dragon Boss Event - 5/s spawn rate
+- **Wave 21** (14.5-15.5 min): Giant Chicken King Final Boss - 5/s spawn rate
+
+#### **Special Event Mechanics:**
+- **Circle Formation**: Enemies spawn in a circle around the player
+- **Boss Events**: Single powerful enemy spawns at distance from player
+- **Swarm Events**: Burst spawning of 5 enemies every 2 seconds
+- **Final Assault**: Multiple spawn points with maximum intensity
+
+#### **Overlapping Wave Design:**
+Each wave starts 30 seconds before the previous wave ends, creating dynamic encounters where multiple enemy types are active simultaneously. This design prevents predictable enemy switching and creates more strategic gameplay.
 
 ## 🚀 Quick Start
 
