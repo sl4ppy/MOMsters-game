@@ -8,7 +8,7 @@ A browser-based roguelike survival game built with PixiJS and TypeScript, inspir
 
 ---
 
-## 🆕 Major Features (2024)
+## 🆕 Major Features
 - **30 unique enemy types** (see full list below), phased in one at a time every 40-60 seconds
 - **Animated fireball projectile** as the main attack
 - **2 XP gem types**: 1XP (green), 10XP (orange)
