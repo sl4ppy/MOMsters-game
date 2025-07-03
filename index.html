@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOMsters - Survival Arena - v2.0 CACHE BREAK</title>
+    <title>MOMsters - Survival Arena - v2.0.1 CACHE BREAK</title>
     
     <!-- NUCLEAR CACHE BUSTING - FORCE CDN REFRESH -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate">
@@ -17,7 +17,7 @@
     
     <!-- Force immediate cache invalidation -->
     <meta name="timestamp" content="1751253500000">
-    <meta name="version" content="MOMSTERS-v2.0-NUCLEAR-CACHE-BREAK">
+    <meta name="version" content="MOMSTERS-v2.0.1-NUCLEAR-CACHE-BREAK">
     <meta name="deployment-id" content="ULTRA-FORCE-REFRESH-1751253500000">
     
     <!-- Additional CDN cache breaking -->
@@ -26,7 +26,7 @@
     <!-- NUCLEAR CACHE COMMENTS -->
     <!-- FORCE-REFRESH-CDN: 1751253500-NUCLEAR-OPTION -->
     <!-- Cache-bust: 1751253500-FORCE-REFRESH-NUCLEAR-DEPLOYMENT -->
-    <!-- Version: MOMSTERS-v2.0-NUCLEAR-CACHE-BREAK -->
+    <!-- Version: MOMSTERS-v2.0.1-NUCLEAR-CACHE-BREAK -->
     <!-- DEPLOYMENT-TIMESTAMP: 2024-12-30-21:00:00-NUCLEAR -->
     
     <style>
@@ -79,14 +79,14 @@
     </style>
 </head>
 <body>
-    <div class="cache-debug">
-        DEPLOYMENT: v2.0-NUCLEAR<br>
+            <div class="cache-debug">
+        DEPLOYMENT: v2.0.1-NUCLEAR<br>
         TIMESTAMP: 1751253500000<br>
         CACHE-BREAK: ACTIVE
     </div>
     
     <div id="gameContainer">
-        <div id="loadingText">Loading MOMsters v2.0...</div>
+        <div id="loadingText">Loading MOMsters v2.0.1...</div>
     </div>
     
     <!-- Nuclear cache-busted script -->
@@ -94,7 +94,7 @@
     
     <!-- NUCLEAR CACHE-BUSTING SCRIPT -->
     <script>
-        console.log('%c🚀 MOMsters v2.0 - NUCLEAR CACHE BREAK DEPLOYMENT', 'color: #0f0; font-size: 16px; font-weight: bold;');
+        console.log('%c🚀 MOMsters v2.0.1 - NUCLEAR CACHE BREAK DEPLOYMENT', 'color: #0f0; font-size: 16px; font-weight: bold;');
         console.log('Deployment timestamp: 1751253500000');
         console.log('If you see old content, this is a CDN caching issue.');
         
@@ -112,6 +112,12 @@
         if (document.title.includes('Vampire Survivors') && !document.title.includes('CACHE BREAK')) {
             console.log('OLD TITLE DETECTED - FORCING RELOAD');
             window.location.href = window.location.href + '?nuclear=' + Date.now() + '&force=refresh';
+        }
+        
+        // Force reload if old version detected
+        if (document.title.includes('v2.0') && !document.title.includes('v2.0.1')) {
+            console.log('OLD VERSION DETECTED - FORCING RELOAD');
+            window.location.href = window.location.href + '?nuclear=' + Date.now() + '&v=2.0.1&force=refresh';
         }
         
         // Clear ALL stored cache
