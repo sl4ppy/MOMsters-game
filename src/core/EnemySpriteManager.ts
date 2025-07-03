@@ -17,7 +17,7 @@ export class EnemySpriteManager {
   private loaded: boolean = false
   
   // Atlas configuration
-  private readonly atlasPath = '/sprites/enemies_01.png'
+  private readonly atlasPath = import.meta.env.BASE_URL + 'sprites/enemies_01.png'
   private readonly tilesPerRow = 10
   private readonly tilesPerColumn = 3
   private readonly totalEnemies = this.tilesPerRow * this.tilesPerColumn // 30 enemies

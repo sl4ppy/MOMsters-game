@@ -33,7 +33,7 @@ export class GemSpriteManager {
       console.log('💎 Loading gem sprite atlas...')
       
       // Load the gems texture
-      this.gemTexture = BaseTexture.from('/sprites/gems.png')
+      this.gemTexture = BaseTexture.from(import.meta.env.BASE_URL + 'sprites/gems.png')
       
       // Wait for texture to load
       await new Promise<void>((resolve, reject) => {

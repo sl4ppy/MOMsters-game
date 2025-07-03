@@ -69,7 +69,7 @@ export class Projectile implements Collidable {
   private async loadFireballSprite(): Promise<void> {
     try {
       // Try to load the fireball texture
-      const texture = await import('pixi.js').then(pixi => pixi.Assets.load('/sprites/fireball.png'))
+      const texture = await import('pixi.js').then(pixi => pixi.Assets.load(import.meta.env.BASE_URL + 'sprites/fireball.png'))
       
       // Create animation frames from the sprite sheet
       // 768x128 sheet with 6 frames of 128x128 each

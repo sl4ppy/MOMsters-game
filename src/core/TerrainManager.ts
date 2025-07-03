@@ -86,7 +86,7 @@ export interface BiomeType {
   private async loadTerrainSheet(): Promise<void> {
     try {
       console.log('🔄 Loading terrain sprite sheet...')
-      this.terrainTexture = await Assets.load('/sprites/terrain2_10x2.png')
+      this.terrainTexture = await Assets.load(import.meta.env.BASE_URL + 'sprites/terrain2_10x2.png')
       console.log('✅ Terrain sprite sheet loaded successfully!')
       console.log(`📊 Sheet contains ${this.totalTiles} tiles (${this.tilesPerRow}x${this.tilesPerColumn})`)
       console.log('🔍 Terrain texture dimensions:', this.terrainTexture.width, 'x', this.terrainTexture.height)
@@ -114,7 +114,7 @@ export interface BiomeType {
   private async loadDecorationSheet(): Promise<void> {
     try {
       console.log('🔄 Loading decoration sprite sheet...')
-      this.decorationTexture = await Assets.load('/sprites/terrain_decoration-10x6.png')
+      this.decorationTexture = await Assets.load(import.meta.env.BASE_URL + 'sprites/terrain_decoration-10x6.png')
       console.log('✅ Decoration sprite sheet loaded successfully!')
       console.log(`📊 Sheet contains ${this.totalDecorationTiles} decoration tiles (${this.decorationTilesPerRow}x${this.decorationTilesPerColumn})`)
       console.log('🔍 Decoration texture dimensions:', this.decorationTexture.width, 'x', this.decorationTexture.height)
