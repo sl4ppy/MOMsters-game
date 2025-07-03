@@ -1,10 +1,11 @@
-import { Graphics } from 'pixi.js'
+import { Graphics, Sprite, DisplayObject } from 'pixi.js'
 import { InputManager } from '../core/InputManager'
 import { Collidable, CollisionGroup } from '../core/CollisionManager'
+import { SpriteManager } from '../core/SpriteManager'
 
 export class Player implements Collidable {
-  public sprite: Graphics
-  public collisionRadius: number = 15
+  public sprite: DisplayObject
+  public collisionRadius: number = 25 // Increased for larger sprite
   public collisionGroup: CollisionGroup = CollisionGroup.PLAYER
   private speed: number = 200 // pixels per second
   private baseSpeed: number = 200 // Base speed for upgrades
@@ -20,35 +21,198 @@ export class Player implements Collidable {
   private healthRegenDelay: number = 5 // Seconds before regen starts after taking damage
   private timeSinceLastDamage: number = 0
   
+  // Animation
+  private animationTime: number = 0
+  
+  // Sprite management
+  private spriteManager?: SpriteManager
+  private useSprites: boolean = false
+  private graphicsSprite: Graphics
+  private bitmapSprite?: Sprite
+  private sharkManSprite?: Sprite
+  
   // Callbacks
   public onDamageTaken?: (damage: number) => void
   public onPlayerDied?: () => void
 
-  constructor() {
-    this.sprite = new Graphics()
-    this.createSprite()
+  constructor(spriteManager?: SpriteManager) {
+    this.spriteManager = spriteManager
+    this.useSprites = !!spriteManager
+    
+    if (this.useSprites && spriteManager?.isLoaded) {
+      this.createSpriteFromTexture()
+    } else {
+      this.sprite = new Graphics()
+      this.createSprite()
+    }
   }
 
-  init(): void {
+  async init(): Promise<void> {
     console.log('Player initialized')
+    await this.loadSharkManSprite()
+  }
+
+  private async loadSharkManSprite(): Promise<void> {
+    try {
+      const { Assets } = await import('pixi.js')
+      const texture = await Assets.load('/sprites/shark-man.png')
+      this.sharkManSprite = new Sprite(texture)
+      this.sharkManSprite.width = 64
+      this.sharkManSprite.height = 64
+      this.sharkManSprite.anchor.set(0.5, 0.5)
+      console.log('✅ Shark-man sprite loaded for player!')
+    } catch (error) {
+      console.warn('⚠️ Failed to load shark-man sprite:', error)
+    }
   }
 
   private createSprite(): void {
-    // Create a simple colored circle for the player
-    this.sprite.clear()
-    this.sprite.beginFill(0x00ff00) // Green color
-    this.sprite.drawCircle(0, 0, 15) // Circle with radius 15
-    this.sprite.endFill()
-    
-    // Add a simple direction indicator
-    this.sprite.beginFill(0xffffff)
-    this.sprite.drawCircle(5, 0, 3)
-    this.sprite.endFill()
+    this.createHexagonCharacter()
+  }
+
+  /**
+   * Create a hexagon-based character design
+   */
+  private createHexagonCharacter(): void {
+    if (this.graphicsSprite) {
+      this.graphicsSprite.clear()
+      
+      // Main body (hexagon shape for a more interesting look) - scaled up for 64x64
+      this.graphicsSprite.beginFill(0x4a90e2) // Blue color
+      this.graphicsSprite.drawPolygon([
+        -24, -16,  // Top left
+        24, -16,   // Top right
+        30, 0,     // Right
+        24, 16,    // Bottom right
+        -24, 16,   // Bottom left
+        -30, 0     // Left
+      ])
+      this.graphicsSprite.endFill()
+      
+      // Inner body highlight
+      this.graphicsSprite.beginFill(0x5ba0f2) // Lighter blue
+      this.graphicsSprite.drawPolygon([
+        -16, -12,  // Top left
+        16, -12,   // Top right
+        20, 0,     // Right
+        16, 12,    // Bottom right
+        -16, 12,   // Bottom left
+        -20, 0     // Left
+      ])
+      this.graphicsSprite.endFill()
+      
+      // Core/energy center
+      this.graphicsSprite.beginFill(0xffffff) // White core
+      this.graphicsSprite.drawCircle(0, 0, 8)
+      this.graphicsSprite.endFill()
+      
+      // Core glow
+      this.graphicsSprite.beginFill(0x7bb3ff, 0.6) // Light blue glow
+      this.graphicsSprite.drawCircle(0, 0, 12)
+      this.graphicsSprite.endFill()
+      
+      // Direction indicator (eye)
+      this.graphicsSprite.beginFill(0x2c3e50) // Dark blue eye
+      this.graphicsSprite.drawCircle(12, -4, 4)
+      this.graphicsSprite.endFill()
+      
+      // Eye highlight
+      this.graphicsSprite.beginFill(0xffffff)
+      this.graphicsSprite.drawCircle(14, -6, 2)
+      this.graphicsSprite.endFill()
+      
+      // Energy particles around the character
+      this.graphicsSprite.beginFill(0x7bb3ff, 0.4)
+      this.graphicsSprite.drawCircle(-16, -20, 4)
+      this.graphicsSprite.drawCircle(16, -20, 4)
+      this.graphicsSprite.drawCircle(-16, 20, 4)
+      this.graphicsSprite.drawCircle(16, 20, 4)
+      this.graphicsSprite.endFill()
+    }
+  }
+
+  /**
+   * Create a simple circle-based character design (alternative)
+   */
+  private createCircleCharacter(): void {
+    if (this.graphicsSprite) {
+      this.graphicsSprite.clear()
+      
+      // Main body - scaled up for 64x64
+      this.graphicsSprite.beginFill(0x00ff88) // Green color
+      this.graphicsSprite.drawCircle(0, 0, 30)
+      this.graphicsSprite.endFill()
+      
+      // Inner glow
+      this.graphicsSprite.beginFill(0x00ffaa, 0.5)
+      this.graphicsSprite.drawCircle(0, 0, 24)
+      this.graphicsSprite.endFill()
+      
+      // Core
+      this.graphicsSprite.beginFill(0xffffff)
+      this.graphicsSprite.drawCircle(0, 0, 12)
+      this.graphicsSprite.endFill()
+      
+      // Direction indicator
+      this.graphicsSprite.beginFill(0x008844)
+      this.graphicsSprite.drawCircle(16, 0, 6)
+      this.graphicsSprite.endFill()
+      
+      // Highlight
+      this.graphicsSprite.beginFill(0xffffff)
+      this.graphicsSprite.drawCircle(18, -2, 2)
+      this.graphicsSprite.endFill()
+    }
+  }
+
+  /**
+   * Create a shark-man character design (placeholder until sprite is loaded)
+   */
+  private createSharkManCharacter(): void {
+    if (this.graphicsSprite) {
+      this.graphicsSprite.clear()
+      
+      // Shark body (blue-gray)
+      this.graphicsSprite.beginFill(0x4a7c8a)
+      this.graphicsSprite.drawEllipse(0, 0, 20, 28)
+      this.graphicsSprite.endFill()
+      
+      // Shark fin
+      this.graphicsSprite.beginFill(0x2c5a6a)
+      this.graphicsSprite.drawPolygon([
+        -8, -20,   // Top
+        0, -28,    // Peak
+        8, -20     // Bottom
+      ])
+      this.graphicsSprite.endFill()
+      
+      // Eye
+      this.graphicsSprite.beginFill(0xffffff)
+      this.graphicsSprite.drawCircle(8, -4, 4)
+      this.graphicsSprite.endFill()
+      
+      // Pupil
+      this.graphicsSprite.beginFill(0x000000)
+      this.graphicsSprite.drawCircle(9, -4, 2)
+      this.graphicsSprite.endFill()
+      
+      // Teeth
+      this.graphicsSprite.beginFill(0xffffff)
+      this.graphicsSprite.drawPolygon([
+        -4, 8,     // Left
+        0, 12,     // Bottom
+        4, 8       // Right
+      ])
+      this.graphicsSprite.endFill()
+    }
   }
 
   update(deltaTime: number, inputManager: InputManager, screenWidth: number = 1024, _screenHeight: number = 768): void {
     const input = inputManager.getInputState()
     const moveSpeed = this.speed * (deltaTime / 60) // Convert to pixels per frame
+    
+    // Update animation time
+    this.animationTime += deltaTime
     
     // Update invulnerability timer
     if (this.invulnerabilityTimer > 0) {
@@ -60,6 +224,21 @@ export class Player implements Collidable {
     
     // Update visual appearance based on health and invulnerability
     this.updateAppearance()
+    
+    // Update character animation
+    this.updateAnimation()
+    
+    // Debug: Switch character design with keyboard shortcuts
+    if (inputManager.isKeyJustPressed('KeyC')) {
+      console.log('Switching to circle design...')
+      this.switchCharacterDesign('circle')
+    } else if (inputManager.isKeyJustPressed('KeyH')) {
+      console.log('Switching to hexagon design...')
+      this.switchCharacterDesign('hexagon')
+    } else if (inputManager.isKeyJustPressed('KeyS')) {
+      console.log('Switching to shark-man design...')
+      this.switchCharacterDesign('shark_man')
+    }
     
     // Debug input state (minimal) - commented out for cleaner gameplay
     // if (input.left || input.right || input.up || input.down) {
@@ -162,18 +341,30 @@ export class Player implements Collidable {
       this.sprite.alpha = 1.0
     }
     
-    // Change color based on health
+    // Change color based on health - use more subtle effects for the detailed sprite
     const healthPercent = this.health / this.maxHealth
     if (healthPercent < 0.3) {
-      // Red tint when critically low health
-      this.sprite.tint = 0xff8888
+      // Red tint when critically low health - more subtle
+      this.sprite.tint = 0xffcccc
     } else if (healthPercent < 0.6) {
-      // Yellow tint when moderately damaged
-      this.sprite.tint = 0xffff88
+      // Orange tint when moderately damaged - more subtle
+      this.sprite.tint = 0xffddcc
     } else {
       // Normal color when healthy
       this.sprite.tint = 0xffffff
     }
+  }
+
+  /**
+   * Update character animation effects
+   */
+  private updateAnimation(): void {
+    // Add subtle pulsing effect to the character
+    const pulseSpeed = 0.1
+    const pulseAmount = 0.05
+    const scale = 1.0 + Math.sin(this.animationTime * pulseSpeed) * pulseAmount
+    
+    this.sprite.scale.set(scale, scale)
   }
 
   heal(amount: number): void {
@@ -199,6 +390,27 @@ export class Player implements Collidable {
    */
   applySpeedUpgrade(speedBonus: number): void {
     this.speed = this.baseSpeed + (this.baseSpeed * speedBonus / 100)
+  }
+
+  /**
+   * Switch character design (for testing different looks)
+   */
+  switchCharacterDesign(design: 'hexagon' | 'circle' | 'shark_man'): void {
+    if (design === 'hexagon') {
+      this.createHexagonCharacter()
+    } else if (design === 'circle') {
+      this.createCircleCharacter()
+    } else if (design === 'shark_man') {
+      if (this.sharkManSprite) {
+        // Use the loaded shark-man sprite
+        this.sprite = this.sharkManSprite
+        console.log('🎉 Using shark-man bitmap sprite!')
+      } else {
+        // Fallback to graphics
+        this.createSharkManCharacter()
+        console.log('⚠️ Using shark-man graphics fallback')
+      }
+    }
   }
 
   // Getters

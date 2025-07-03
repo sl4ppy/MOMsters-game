@@ -1,9 +1,10 @@
 import { Application, Container, Graphics } from 'pixi.js'
 import { GameState } from './GameState'
 import { InputManager } from './InputManager'
-import { Player } from '../entities/Player'
+import { SimplePlayer } from '../entities/SimplePlayer'
 import { Camera } from './Camera'
 import { CollisionManager } from './CollisionManager'
+import { TerrainManager, TerrainTile } from './TerrainManager'
 import { EnemySpawner } from '../systems/EnemySpawner'
 import { WeaponSystem } from '../systems/WeaponSystem'
 import { LevelingSystem } from '../systems/LevelingSystem'
@@ -18,12 +19,14 @@ export class Game {
   private gameContainer: Container
   private state: GameState
   private inputManager: InputManager
-  private player: Player
+  private player: SimplePlayer
   private camera: Camera
   private collisionManager: CollisionManager
   private enemySpawner: EnemySpawner
   private weaponSystem: WeaponSystem
   private levelingSystem: LevelingSystem
+  private terrainManager: TerrainManager
+  private terrainTiles: TerrainTile[] = []
   private hud: HUD
   private gameOverScreen: GameOverScreen
   private levelUpScreen: LevelUpScreen
@@ -39,12 +42,13 @@ export class Game {
     this.gameContainer = new Container()
     this.state = new GameState()
     this.inputManager = new InputManager()  
-    this.player = new Player()
+    this.player = new SimplePlayer()
     this.camera = new Camera(this.gameContainer, app.view.width, app.view.height)
     this.collisionManager = new CollisionManager()
     this.enemySpawner = new EnemySpawner(this.gameContainer, this.camera, this.collisionManager, this.player)
     this.weaponSystem = new WeaponSystem(this.gameContainer, this.collisionManager, this.player, this.enemySpawner)
     this.levelingSystem = new LevelingSystem()
+    this.terrainManager = new TerrainManager()
     this.hud = new HUD(app.view.width, app.view.height)
     this.gameOverScreen = new GameOverScreen(app.view.width, app.view.height)
     this.levelUpScreen = new LevelUpScreen()
@@ -108,6 +112,9 @@ export class Game {
     
     // Add some visual reference points to test camera movement
     this.addWorldReferencePoints()
+    
+    // Create some test terrain tiles
+    this.createTestTerrain()
     
     // Test collision object no longer needed - we have real enemies now!
     // this.addTestCollisionObject()
@@ -322,6 +329,54 @@ export class Game {
     })
     
     console.log('Added world reference points for camera testing')
+  }
+
+  private createTestTerrain(): void {
+    // Wait a bit for the terrain manager to load, then create procedural terrain
+    setTimeout(() => {
+      console.log('🔍 Checking if terrain manager is loaded...')
+      console.log('Terrain manager loaded status:', this.terrainManager.isLoaded())
+      
+      if (this.terrainManager.isLoaded()) {
+        console.log('✅ Terrain manager is loaded, generating procedural terrain...')
+        
+        // Generate decorative procedural terrain across the entire world
+        const worldSize = 2000 // Large world size for exploration
+        const terrainTiles = this.terrainManager.generateProceduralTerrain({
+          worldWidth: worldSize,
+          worldHeight: worldSize,
+          tileSize: this.terrainManager.getTerrainInfo().tileSize,
+          biomeSeed: Math.floor(Math.random() * 1000000), // Random seed for variety
+          terrainDensity: 0.85, // 85% of the world should have decorative terrain
+          // Use default biome configurations for visual variety
+        })
+        
+        console.log(`📊 Generated ${terrainTiles.length} terrain tiles, adding to game container...`)
+        
+        // Add all tiles to the game container
+        for (const tile of terrainTiles) {
+          this.gameContainer.addChild(tile.sprite)
+          this.terrainTiles.push(tile)
+          console.log(`📍 Added terrain tile ${tile.tileType} (${tile.biome}) at (${tile.x}, ${tile.y})`)
+        }
+        
+        console.log(`✅ Successfully added ${terrainTiles.length} terrain tiles to game`)
+        console.log('🎮 Game container children count:', this.gameContainer.children.length)
+        
+        // Log biome statistics
+        const biomeStats = new Map<string, number>()
+        for (const tile of terrainTiles) {
+          if (tile.biome) {
+            biomeStats.set(tile.biome, (biomeStats.get(tile.biome) || 0) + 1)
+          }
+        }
+        console.log('🌍 Biome distribution:', Object.fromEntries(biomeStats))
+        
+      } else {
+        console.log('⏳ Terrain manager not loaded yet, retrying in 1 second...')
+        this.createTestTerrain() // Retry after a delay
+      }
+    }, 1000) // Wait 1 second for loading
   }
 
 

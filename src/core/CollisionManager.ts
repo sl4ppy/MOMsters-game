@@ -1,4 +1,4 @@
-import { Graphics } from 'pixi.js'
+import { Graphics, Sprite, DisplayObject } from 'pixi.js'
 
 // Collision groups for different entity types
 export enum CollisionGroup {
@@ -10,7 +10,7 @@ export enum CollisionGroup {
 
 // Interface for objects that can collide
 export interface Collidable {
-  sprite: Graphics
+  sprite: DisplayObject
   collisionRadius: number
   collisionGroup: CollisionGroup
   onCollision?: (other: Collidable) => void

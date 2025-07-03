@@ -1,5 +1,6 @@
 import { Application } from 'pixi.js'
 import { Game } from './core/Game'
+import { testSharkManDisplay } from './test-shark-man'
 
 // Create and initialize the game
 async function init() {
