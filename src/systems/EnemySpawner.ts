@@ -85,6 +85,7 @@ export class EnemySpawner {
     
     // Add to world and systems
     this.gameContainer.addChild(enemy.sprite)
+    enemy.sprite.zIndex = 50 // Ensure enemies render above terrain (which has zIndex = -10000) but below player (zIndex = 1500)
     this.collisionManager.addEntity(enemy)
     this.enemies.push(enemy)
     

@@ -77,6 +77,7 @@ export class Game {
     // Initialize player
     this.player.init()
     this.gameContainer.addChild(this.player.sprite)
+    this.player.sprite.zIndex = 1500 // Ensure player renders above ALL terrain (which has zIndex = -10000) and HUD (zIndex = 1000)
     
     // Position player at world origin (camera will center the view)
     this.player.sprite.x = 0
@@ -109,9 +110,6 @@ export class Game {
       this.startGameFromTitle()
     }
     console.log('Title screen callback set. Current state - showingTitleScreen:', this.showingTitleScreen, 'titleScreen.visible:', this.titleScreen.visible)
-    
-    // Add some visual reference points to test camera movement
-    this.addWorldReferencePoints()
     
     // Create some test terrain tiles
     this.createTestTerrain()
@@ -279,6 +277,7 @@ export class Game {
     
     // Add to world and collision system
     this.gameContainer.addChild(orb.sprite)
+    orb.sprite.zIndex = 80 // Ensure orbs render above projectiles (zIndex = 75) and terrain (zIndex = -10000)
     this.collisionManager.addEntity(orb)
     this.experienceOrbs.push(orb)
   }
@@ -304,32 +303,7 @@ export class Game {
     }
   }
 
-  private addWorldReferencePoints(): void {
-    // Add some static objects at different world positions to test camera
-    
-    // Create reference points at various positions
-    const positions = [
-      { x: 0, y: 0, color: 0xffffff, size: 5 }, // White dot at origin
-      { x: 200, y: 0, color: 0xff0000, size: 8 }, // Red dot to the right
-      { x: -200, y: 0, color: 0x0000ff, size: 8 }, // Blue dot to the left
-      { x: 0, y: 200, color: 0x00ff00, size: 8 }, // Green dot below
-      { x: 0, y: -200, color: 0xffff00, size: 8 }, // Yellow dot above
-      { x: 300, y: 300, color: 0xff00ff, size: 10 }, // Magenta dot diagonal
-      { x: -300, y: -300, color: 0x00ffff, size: 10 }, // Cyan dot diagonal
-    ]
-    
-    positions.forEach(pos => {
-      const dot = new Graphics()
-      dot.beginFill(pos.color)
-      dot.drawCircle(0, 0, pos.size)
-      dot.endFill()
-      dot.x = pos.x
-      dot.y = pos.y
-      this.gameContainer.addChild(dot)
-    })
-    
-    console.log('Added world reference points for camera testing')
-  }
+
 
   private createTestTerrain(): void {
     // Wait a bit for the terrain manager to load, then create procedural terrain
@@ -347,13 +321,13 @@ export class Game {
           worldHeight: worldSize,
           tileSize: this.terrainManager.getTerrainInfo().tileSize,
           biomeSeed: Math.floor(Math.random() * 1000000), // Random seed for variety
-          terrainDensity: 0.85, // 85% of the world should have decorative terrain
+          terrainDensity: 0.5, // 50% of the world should have decorative terrain (balanced open space)
           // Use default biome configurations for visual variety
         })
         
         console.log(`📊 Generated ${terrainTiles.length} terrain tiles, adding to game container...`)
         
-        // Add all tiles to the game container
+        // Add all tiles to the game container (terrain has zIndex = -10000 to render underneath everything)
         for (const tile of terrainTiles) {
           this.gameContainer.addChild(tile.sprite)
           this.terrainTiles.push(tile)

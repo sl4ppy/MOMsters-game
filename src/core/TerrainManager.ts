@@ -25,41 +25,42 @@ export interface BiomeType {
   colorTint?: number // Optional visual tint for the biome
 }
 
-export class TerrainManager {
+  export class TerrainManager {
   private terrainTexture?: Texture
-  private tileSize: number = 16
+  private tileSize: number = 32 // Target rendering size - textures will be scaled to this size
+  private actualTileSize: number = 16 // Actual texture tile size
   private tilesPerRow: number = 7
   private tilesPerColumn: number = 2
   private totalTiles: number = this.tilesPerRow * this.tilesPerColumn
   
-  // Simplified biome configurations for decorative terrain
+  // Ultra-cohesive biome configurations for massive, spread-out terrain clusters
   private defaultBiomes: BiomeType[] = [
     {
       name: 'grassland',
-      tileWeights: [0.3, 0.2, 0.15, 0.1, 0.1, 0.05, 0.05, 0.2, 0.15, 0.1, 0.05, 0.05, 0.05, 0.05],
-      frequency: 0.4,
-      clusterSize: 8,
+      tileWeights: [0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0], // Focus heavily on first 2 tiles
+      frequency: 0.25,
+      clusterSize: 40, // Massive clusters
       colorTint: 0x90EE90 // Light green tint
     },
     {
       name: 'forest',
-      tileWeights: [0.1, 0.2, 0.3, 0.2, 0.1, 0.05, 0.05, 0.1, 0.2, 0.3, 0.2, 0.1, 0.05, 0.05],
-      frequency: 0.3,
-      clusterSize: 12,
+      tileWeights: [0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0], // Focus heavily on middle tiles
+      frequency: 0.25,
+      clusterSize: 50, // Massive clusters
       colorTint: 0x228B22 // Forest green tint
     },
     {
       name: 'rocky',
-      tileWeights: [0.05, 0.1, 0.15, 0.2, 0.25, 0.15, 0.1, 0.05, 0.1, 0.15, 0.2, 0.25, 0.15, 0.1],
-      frequency: 0.2,
-      clusterSize: 6,
+      tileWeights: [0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0], // Focus heavily on later tiles
+      frequency: 0.25,
+      clusterSize: 35, // Large clusters
       colorTint: 0x696969 // Dim gray tint
     },
     {
       name: 'water',
-      tileWeights: [0.05, 0.05, 0.1, 0.15, 0.2, 0.25, 0.2, 0.05, 0.05, 0.1, 0.15, 0.2, 0.25, 0.2],
-      frequency: 0.1,
-      clusterSize: 10,
+      tileWeights: [0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0], // Focus heavily on water tiles
+      frequency: 0.25,
+      clusterSize: 60, // Massive clusters for water
       colorTint: 0x4169E1 // Royal blue tint
     }
   ]
@@ -85,8 +86,9 @@ export class TerrainManager {
       // Update tile size if different from expected
       if (actualTileWidth !== this.tileSize || actualTileHeight !== this.tileSize) {
         console.log(`⚠️ Tile size mismatch! Expected ${this.tileSize}x${this.tileSize}, got ${actualTileWidth}x${actualTileHeight}`)
-        this.tileSize = Math.min(actualTileWidth, actualTileHeight) // Use the smaller dimension
-        console.log(`✅ Updated tile size to ${this.tileSize}x${this.tileSize}`)
+        console.log(`📏 Texture tiles are ${actualTileWidth}x${actualTileHeight}, will be scaled to ${this.tileSize}x${this.tileSize} for rendering`)
+        // Keep the expected tile size (32) for rendering, but note the actual texture size
+        console.log(`✅ Tiles will render at ${this.tileSize}x${this.tileSize} (scaled from ${actualTileWidth}x${actualTileHeight})`)
       }
     } catch (error) {
       console.error('❌ Failed to load terrain sprite sheet:', error)
@@ -112,14 +114,14 @@ export class TerrainManager {
     const row = Math.floor(tileType / this.tilesPerRow)
     const col = tileType % this.tilesPerRow
     
-    // Calculate tile position and ensure it fits within the texture
-    const tileX = col * this.tileSize
-    const tileY = row * this.tileSize
+    // Calculate tile position using actual texture tile size
+    const tileX = col * this.actualTileSize
+    const tileY = row * this.actualTileSize
     
     // Safety check: ensure the tile rectangle fits within the texture
-    if (tileX + this.tileSize > this.terrainTexture.width || tileY + this.tileSize > this.terrainTexture.height) {
+    if (tileX + this.actualTileSize > this.terrainTexture.width || tileY + this.actualTileSize > this.terrainTexture.height) {
       console.warn(`⚠️ Tile ${tileType} (row ${row}, col ${col}) would exceed texture bounds!`)
-      console.warn(`   Tile position: (${tileX}, ${tileY}) with size ${this.tileSize}x${this.tileSize}`)
+      console.warn(`   Tile position: (${tileX}, ${tileY}) with size ${this.actualTileSize}x${this.actualTileSize}`)
       console.warn(`   Texture size: ${this.terrainTexture.width}x${this.terrainTexture.height}`)
       return null
     }
@@ -128,8 +130,8 @@ export class TerrainManager {
     const tileRect = new Rectangle(
       tileX,
       tileY,
-      this.tileSize,
-      this.tileSize
+      this.actualTileSize,
+      this.actualTileSize
     )
     
     // Create a new texture from the rectangle
@@ -140,6 +142,13 @@ export class TerrainManager {
     sprite.x = x
     sprite.y = y
     sprite.anchor.set(0, 0) // Top-left anchor for tiles
+    sprite.zIndex = -10000 // Ensure terrain renders underneath ALL other sprites with maximum priority
+    sprite.alpha = 0.5 // Set terrain tiles to 50% opacity for subtle background effect
+    
+    // Scale the sprite to render at the desired tile size (32x32)
+    // The actual texture tile size is 16x16, so we scale by 2x to get 32x32
+    const scaleFactor = this.tileSize / this.actualTileSize // 32 / 16 = 2
+    sprite.scale.set(scaleFactor, scaleFactor)
     
     // Apply biome color tint if available
     if (biome) {
@@ -183,6 +192,9 @@ export class TerrainManager {
     // Generate terrain density map for varied placement
     const densityMap = this.generateDensityMap(gridWidth, gridHeight, options.terrainDensity || 0.8)
     
+    // Generate tile type map for cohesive tile clustering within biomes
+    const tileTypeMap = this.generateTileTypeMap(gridWidth, gridHeight, biomeMap, biomes, options.biomeSeed)
+    
     // Create terrain tiles
     for (let gridY = 0; gridY < gridHeight; gridY++) {
       for (let gridX = 0; gridX < gridWidth; gridX++) {
@@ -192,7 +204,7 @@ export class TerrainManager {
         // Check if we should place terrain here based on density
         if (densityMap[gridY][gridX] > Math.random()) {
           const biome = biomeMap[gridY][gridX]
-          const tileType = this.selectTileTypeForBiome(biome, biomes)
+          const tileType = tileTypeMap[gridY][gridX]
           
           const tile = this.createTerrainTile(tileType, worldX, worldY, biome.name)
           if (tile) {
@@ -203,11 +215,22 @@ export class TerrainManager {
     }
     
     console.log(`✅ Generated ${tiles.length} decorative terrain tiles`)
+    console.log(`📊 Density map statistics: min=${Math.min(...densityMap.flat())}, max=${Math.max(...densityMap.flat())}, avg=${densityMap.flat().reduce((a, b) => a + b, 0) / densityMap.flat().length}`)
+    console.log(`🎯 Terrain placement: ${tiles.length} tiles placed out of ${gridWidth * gridHeight} possible positions`)
+    console.log(`🔍 Density settings: base=${options.terrainDensity}, threshold=0.4, grid=${gridWidth}x${gridHeight}`)
+    
+    // Debug: Show some density values
+    const nonZeroDensities = densityMap.flat().filter(d => d > 0)
+    console.log(`🔍 Non-zero density values: ${nonZeroDensities.length} out of ${densityMap.flat().length} (${(nonZeroDensities.length / densityMap.flat().length * 100).toFixed(1)}%)`)
+    if (nonZeroDensities.length > 0) {
+      console.log(`🔍 Density range: ${Math.min(...nonZeroDensities).toFixed(3)} to ${Math.max(...nonZeroDensities).toFixed(3)}`)
+    }
+    
     return tiles
   }
 
   /**
-   * Generate a biome map using cellular automata for natural-looking clusters
+   * Generate a biome map using enhanced cellular automata for larger, more cohesive clusters
    */
   private generateBiomeMap(width: number, height: number, biomes: BiomeType[], seed?: number): BiomeType[][] {
     const biomeMap: BiomeType[][] = []
@@ -223,8 +246,8 @@ export class TerrainManager {
       }
     }
     
-    // Apply cellular automata to create natural clusters
-    for (let iteration = 0; iteration < 3; iteration++) {
+    // Apply ultra-enhanced cellular automata to create massive, spread-out clusters
+    for (let iteration = 0; iteration < 8; iteration++) { // Many more iterations for massive clustering
       const newMap: BiomeType[][] = []
       
       for (let y = 0; y < height; y++) {
@@ -233,8 +256,30 @@ export class TerrainManager {
           const neighbors = this.getNeighborBiomes(biomeMap, x, y, width, height)
           const mostCommonBiome = this.getMostCommonBiome(neighbors)
           
-          // 70% chance to become the most common neighbor biome for natural clustering
-          if (seededRandom() < 0.7) {
+          // Very high chance (90%) to become the most common neighbor biome for ultra-strong clustering
+          if (seededRandom() < 0.9) {
+            newMap[y][x] = mostCommonBiome
+          } else {
+            newMap[y][x] = biomeMap[y][x]
+          }
+        }
+      }
+      
+      biomeMap.splice(0, biomeMap.length, ...newMap)
+    }
+    
+    // Apply multiple smoothing passes for ultra-cohesive regions
+    for (let iteration = 0; iteration < 4; iteration++) {
+      const newMap: BiomeType[][] = []
+      
+      for (let y = 0; y < height; y++) {
+        newMap[y] = []
+        for (let x = 0; x < width; x++) {
+          const neighbors = this.getNeighborBiomes(biomeMap, x, y, width, height)
+          const mostCommonBiome = this.getMostCommonBiome(neighbors)
+          
+          // Extremely high chance (98%) for final ultra-smoothing
+          if (seededRandom() < 0.98) {
             newMap[y][x] = mostCommonBiome
           } else {
             newMap[y][x] = biomeMap[y][x]
@@ -264,7 +309,7 @@ export class TerrainManager {
   }
 
   /**
-   * Generate a density map for varied terrain placement
+   * Generate a density map for more natural terrain placement with larger open areas
    */
   private generateDensityMap(width: number, height: number, density: number): number[][] {
     const densityMap: number[][] = []
@@ -272,10 +317,21 @@ export class TerrainManager {
     for (let y = 0; y < height; y++) {
       densityMap[y] = []
       for (let x = 0; x < width; x++) {
-        // Create natural variation in density using noise
-        const noise = this.simpleNoise(x * 0.1, y * 0.1)
-        const adjustedDensity = density + (noise * 0.3) - 0.15
-        densityMap[y][x] = Math.max(0, Math.min(1, adjustedDensity))
+        // Create ultra-natural variation in density using multiple noise layers
+        const noise1 = this.simpleNoise(x * 0.03, y * 0.03) // Very large-scale variation
+        const noise2 = this.simpleNoise(x * 0.08, y * 0.08) // Large-scale variation
+        const noise3 = this.simpleNoise(x * 0.2, y * 0.2)   // Medium-scale variation
+        
+        // Combine noise layers for ultra-natural patterns with more dramatic variations
+        const combinedNoise = (noise1 * 0.6 + noise2 * 0.3 + noise3 * 0.1)
+        const adjustedDensity = density + (combinedNoise * 0.6) - 0.3
+        
+        // Create very dramatic density variations for much larger open areas
+        const finalDensity = Math.max(0, Math.min(1, adjustedDensity))
+        
+        // Apply moderate threshold to ensure terrain placement while maintaining open areas
+        const threshold = 0.4
+        densityMap[y][x] = finalDensity > threshold ? finalDensity : 0
       }
     }
     
@@ -346,6 +402,122 @@ export class TerrainManager {
       if (count > maxCount) {
         maxCount = count
         mostCommon = biomes.find(b => b.name === name) || biomes[0]
+      }
+    }
+    
+    return mostCommon
+  }
+
+  /**
+   * Generate a tile type map that creates cohesive clusters of similar tiles within biomes
+   */
+  private generateTileTypeMap(width: number, height: number, biomeMap: BiomeType[][], biomes: BiomeType[], seed?: number): number[][] {
+    const tileTypeMap: number[][] = []
+    const seededRandom = this.createSeededRandom(seed ? seed + 1000 : undefined) // Different seed for tile types
+    
+    // Initialize with random tile types based on biome
+    for (let y = 0; y < height; y++) {
+      tileTypeMap[y] = []
+      for (let x = 0; x < width; x++) {
+        const biome = biomeMap[y][x]
+        tileTypeMap[y][x] = this.selectTileTypeForBiome(biome, biomes)
+      }
+    }
+    
+    // Apply ultra-strong cellular automata to cluster similar tiles within each biome
+    for (let iteration = 0; iteration < 6; iteration++) { // More iterations for stronger clustering
+      const newMap: number[][] = []
+      
+      for (let y = 0; y < height; y++) {
+        newMap[y] = []
+        for (let x = 0; x < width; x++) {
+          const biome = biomeMap[y][x]
+          const neighbors = this.getNeighborTileTypes(tileTypeMap, x, y, width, height, biomeMap)
+          const mostCommonTileType = this.getMostCommonTileType(neighbors)
+          
+          // 90% chance to become the most common neighbor tile type for ultra-strong clustering
+          if (seededRandom() < 0.9) {
+            newMap[y][x] = mostCommonTileType
+          } else {
+            newMap[y][x] = tileTypeMap[y][x]
+          }
+        }
+      }
+      
+      tileTypeMap.splice(0, tileTypeMap.length, ...newMap)
+    }
+    
+    // Apply additional smoothing passes for ultra-cohesive tile regions
+    for (let iteration = 0; iteration < 3; iteration++) {
+      const newMap: number[][] = []
+      
+      for (let y = 0; y < height; y++) {
+        newMap[y] = []
+        for (let x = 0; x < width; x++) {
+          const biome = biomeMap[y][x]
+          const neighbors = this.getNeighborTileTypes(tileTypeMap, x, y, width, height, biomeMap)
+          const mostCommonTileType = this.getMostCommonTileType(neighbors)
+          
+          // 95% chance for final tile smoothing
+          if (seededRandom() < 0.95) {
+            newMap[y][x] = mostCommonTileType
+          } else {
+            newMap[y][x] = tileTypeMap[y][x]
+          }
+        }
+      }
+      
+      tileTypeMap.splice(0, tileTypeMap.length, ...newMap)
+    }
+    
+    return tileTypeMap
+  }
+
+  /**
+   * Get neighboring tile types within the same biome
+   */
+  private getNeighborTileTypes(tileTypeMap: number[][], x: number, y: number, width: number, height: number, biomeMap: BiomeType[][]): number[] {
+    const neighbors: number[] = []
+    const currentBiome = biomeMap[y][x]
+    
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue
+        
+        const nx = x + dx
+        const ny = y + dy
+        
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          // Only consider neighbors from the same biome
+          if (biomeMap[ny][nx].name === currentBiome.name) {
+            neighbors.push(tileTypeMap[ny][nx])
+          }
+        }
+      }
+    }
+    
+    return neighbors
+  }
+
+  /**
+   * Get the most common tile type from a list
+   */
+  private getMostCommonTileType(tileTypes: number[]): number {
+    if (tileTypes.length === 0) return 0
+    
+    const counts = new Map<number, number>()
+    
+    for (const tileType of tileTypes) {
+      counts.set(tileType, (counts.get(tileType) || 0) + 1)
+    }
+    
+    let mostCommon = tileTypes[0]
+    let maxCount = 0
+    
+    for (const [tileType, count] of counts) {
+      if (count > maxCount) {
+        maxCount = count
+        mostCommon = tileType
       }
     }
     

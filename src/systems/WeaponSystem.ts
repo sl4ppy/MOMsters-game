@@ -111,6 +111,7 @@ export class WeaponSystem {
     
     // Add to world and collision system
     this.gameContainer.addChild(projectile.sprite)
+    projectile.sprite.zIndex = 75 // Ensure projectiles render above enemies (zIndex = 50) and terrain (zIndex = -10000)
     this.collisionManager.addEntity(projectile)
     this.projectiles.push(projectile)
     
