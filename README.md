@@ -4,7 +4,84 @@
 
 A browser-based roguelike survival game built with PixiJS and TypeScript, inspired by Vampire Survivors.
 
-**✨ Now with comprehensive automated testing and deployment validation!**
+**✨ Now with 30 unique enemies, animated projectiles, and a Godzilla player character!**
+
+---
+
+## 🆕 Major Features (2024)
+- **30 unique enemy types** (see full list below), phased in one at a time every 40-60 seconds
+- **Animated fireball projectile** as the main attack
+- **2 XP gem types**: 1XP (green), 10XP (orange)
+- **Progressive enemy spawning**: Only one enemy type spawns at a time, advancing every 40-60s
+- **Godzilla player character** (default, no fallback)
+- **Upgrade system**: Health, speed, magnet range, attack interval, piercing, and more
+- **New terrain and decoration systems** for richer environments
+
+---
+
+## 👾 Enemy Roster (All 30 Types)
+Blob, Goblin, Plant, Hobgoblin, Mermaid, Gargoyle, ChompChest, TreeEnt, Reaper, Palomino,
+Green Dragon, Red Dragon, Blue Dragon, Skeleton, Mollusk, Banshee, Floating Maw, Cacodemon, Sea Hag, Demon,
+Centaur, Green Orc, Golden Orc, Void, Golem, Ice Golem, Jawa, Mud Golem, Skull, PlasmaMan
+
+---
+
+## 🛡️ Player Abilities & Upgrades
+- **Auto-fire**: Animated fireball projectiles
+- **Upgrades** (choose on level up):
+  - Max Health
+  - Health Regeneration
+  - Move Speed
+  - Magnet Range (XP pickup distance)
+  - Attack Interval (fire rate)
+  - Projectile Piercing
+  - (More coming soon!)
+
+---
+
+## 🟢 XP Gems
+- **Green Gem**: 1 XP
+- **Orange Gem**: 10 XP
+- Gems are attracted to the player when in magnet range
+
+---
+
+## 🌎 Terrain & Decoration
+- Multiple terrain tile atlases
+- Randomly placed decorative elements for visual variety
+
+---
+
+## 🎯 Completed Features
+- [x] **Core Game Engine** (PixiJS, TypeScript, camera, collision, etc)
+- [x] **30 unique enemy types** with progressive spawning
+- [x] **Animated fireball projectile** system
+- [x] **Godzilla player character** (default, no fallback)
+- [x] **Experience & Leveling** (XP gems, upgrades)
+- [x] **Upgrade system** (health, speed, magnet, attack interval, piercing, etc)
+- [x] **Terrain & Decoration** (multiple atlases, random placement)
+- [x] **UI/HUD** (health, XP, timer, upgrades, screens)
+- [x] **Comprehensive test harness & CI/CD**
+
+---
+
+## 🔄 Current Development
+- [ ] Visual effects (particles, screen shake, death anims)
+- [ ] Audio system (music, SFX)
+- [ ] More upgrades and abilities
+- [ ] Advanced enemy behaviors
+
+---
+
+## 🎮 Controls
+- **Movement**: WASD or Arrow Keys
+- **Game Start**: SPACE or ENTER (on title screen)
+- **Upgrades**: 1, 2, 3 keys (during level up)
+- **Restart**: R key (on game over screen)
+
+---
+
+## 📝 For full details, see the rest of this README and the [test documentation](tests/README.md).
 
 ## 🎮 Game Overview
 
