@@ -143,7 +143,7 @@ export interface BiomeType {
     sprite.y = y
     sprite.anchor.set(0, 0) // Top-left anchor for tiles
     sprite.zIndex = -10000 // Ensure terrain renders underneath ALL other sprites with maximum priority
-    sprite.alpha = 0.5 // Set terrain tiles to 50% opacity for subtle background effect
+    sprite.alpha = 0.25 + Math.random() * 0.75 // Set terrain tiles to random opacity between 25% and 100%
     
     // Scale the sprite to render at the desired tile size (32x32)
     // The actual texture tile size is 16x16, so we scale by 2x to get 32x32
