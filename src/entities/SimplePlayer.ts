@@ -56,7 +56,7 @@ export class SimplePlayer implements Collidable {
   private async loadGodzillaSprite(): Promise<void> {
     try {
       console.log('🔄 Loading godzilla sprite...')
-      const texture = await Assets.load('/sprites/godzilla_small.png')
+      const texture = await Assets.load(import.meta.env.BASE_URL + 'sprites/godzilla_small.png')
       this.godzillaSprite = new Sprite(texture)
       this.godzillaSprite.width = 64
       this.godzillaSprite.height = 64
