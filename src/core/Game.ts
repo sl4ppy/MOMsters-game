@@ -4,7 +4,7 @@ import { InputManager } from './InputManager'
 import { SimplePlayer } from '../entities/SimplePlayer'
 import { Camera } from './Camera'
 import { CollisionManager } from './CollisionManager'
-import { TerrainManager, TerrainTile } from './TerrainManager'
+import { TerrainManager, TerrainTile, DecorationTile } from './TerrainManager'
 import { EnemySpawner } from '../systems/EnemySpawner'
 import { WeaponSystem } from '../systems/WeaponSystem'
 import { LevelingSystem } from '../systems/LevelingSystem'
@@ -27,6 +27,7 @@ export class Game {
   private levelingSystem: LevelingSystem
   private terrainManager: TerrainManager
   private terrainTiles: TerrainTile[] = []
+  private decorationTiles: DecorationTile[] = []
   private hud: HUD
   private gameOverScreen: GameOverScreen
   private levelUpScreen: LevelUpScreen
@@ -335,6 +336,25 @@ export class Game {
         }
         
         console.log(`✅ Successfully added ${terrainTiles.length} terrain tiles to game`)
+        
+        // Generate sparse decorations
+        const decorationTiles = this.terrainManager.generateSparseDecorations({
+          worldWidth: worldSize,
+          worldHeight: worldSize,
+          tileSize: this.terrainManager.getTerrainInfo().tileSize,
+          biomeSeed: Math.floor(Math.random() * 1000000), // Random seed for variety
+        })
+        
+        console.log(`🌿 Generated ${decorationTiles.length} decoration tiles, adding to game container...`)
+        
+        // Add all decoration tiles to the game container (decorations have zIndex = -5000 to render above terrain)
+        for (const decoration of decorationTiles) {
+          this.gameContainer.addChild(decoration.sprite)
+          this.decorationTiles.push(decoration)
+          console.log(`🌿 Added decoration tile ${decoration.tileType} at (${decoration.x}, ${decoration.y})`)
+        }
+        
+        console.log(`✅ Successfully added ${decorationTiles.length} decoration tiles to game`)
         console.log('🎮 Game container children count:', this.gameContainer.children.length)
         
         // Log biome statistics

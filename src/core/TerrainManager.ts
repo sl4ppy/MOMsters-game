@@ -8,6 +8,13 @@ export interface TerrainTile {
   biome?: string
 }
 
+export interface DecorationTile {
+  sprite: Sprite
+  tileType: number
+  x: number
+  y: number
+}
+
 export interface TerrainGenerationOptions {
   worldWidth: number
   worldHeight: number
@@ -27,38 +34,44 @@ export interface BiomeType {
 
   export class TerrainManager {
   private terrainTexture?: Texture
+  private decorationTexture?: Texture
   private tileSize: number = 32 // Target rendering size - textures will be scaled to this size
-  private actualTileSize: number = 16 // Actual texture tile size
-  private tilesPerRow: number = 7
+  private actualTileSize: number = 32 // Actual texture tile size (new atlas is 32x32)
+  private tilesPerRow: number = 10
   private tilesPerColumn: number = 2
   private totalTiles: number = this.tilesPerRow * this.tilesPerColumn
+  
+  // Decoration atlas properties
+  private decorationTilesPerRow: number = 10
+  private decorationTilesPerColumn: number = 6
+  private totalDecorationTiles: number = this.decorationTilesPerRow * this.decorationTilesPerColumn
   
   // Ultra-cohesive biome configurations for massive, spread-out terrain clusters
   private defaultBiomes: BiomeType[] = [
     {
       name: 'grassland',
-      tileWeights: [0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0], // Focus heavily on first 2 tiles
+      tileWeights: [0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // Focus heavily on first 2 tiles of each row
       frequency: 0.25,
       clusterSize: 40, // Massive clusters
       colorTint: 0x90EE90 // Light green tint
     },
     {
       name: 'forest',
-      tileWeights: [0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0], // Focus heavily on middle tiles
+      tileWeights: [0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // Focus heavily on middle tiles of each row
       frequency: 0.25,
       clusterSize: 50, // Massive clusters
       colorTint: 0x228B22 // Forest green tint
     },
     {
       name: 'rocky',
-      tileWeights: [0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0], // Focus heavily on later tiles
+      tileWeights: [0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0], // Focus heavily on later tiles of each row
       frequency: 0.25,
       clusterSize: 35, // Large clusters
       colorTint: 0x696969 // Dim gray tint
     },
     {
       name: 'water',
-      tileWeights: [0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0], // Focus heavily on water tiles
+      tileWeights: [0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0], // Focus heavily on water tiles of each row
       frequency: 0.25,
       clusterSize: 60, // Massive clusters for water
       colorTint: 0x4169E1 // Royal blue tint
@@ -67,12 +80,13 @@ export interface BiomeType {
   
   constructor() {
     this.loadTerrainSheet()
+    this.loadDecorationSheet()
   }
 
   private async loadTerrainSheet(): Promise<void> {
     try {
       console.log('🔄 Loading terrain sprite sheet...')
-      this.terrainTexture = await Assets.load('/sprites/terrain_7x2.png')
+      this.terrainTexture = await Assets.load('/sprites/terrain2_10x2.png')
       console.log('✅ Terrain sprite sheet loaded successfully!')
       console.log(`📊 Sheet contains ${this.totalTiles} tiles (${this.tilesPerRow}x${this.tilesPerColumn})`)
       console.log('🔍 Terrain texture dimensions:', this.terrainTexture.width, 'x', this.terrainTexture.height)
@@ -84,14 +98,28 @@ export interface BiomeType {
       console.log('🔍 Calculated tile size:', actualTileWidth, 'x', actualTileHeight)
       
       // Update tile size if different from expected
-      if (actualTileWidth !== this.tileSize || actualTileHeight !== this.tileSize) {
-        console.log(`⚠️ Tile size mismatch! Expected ${this.tileSize}x${this.tileSize}, got ${actualTileWidth}x${actualTileHeight}`)
+      if (actualTileWidth !== this.actualTileSize || actualTileHeight !== this.actualTileSize) {
+        console.log(`⚠️ Tile size mismatch! Expected ${this.actualTileSize}x${this.actualTileSize}, got ${actualTileWidth}x${actualTileHeight}`)
         console.log(`📏 Texture tiles are ${actualTileWidth}x${actualTileHeight}, will be scaled to ${this.tileSize}x${this.tileSize} for rendering`)
-        // Keep the expected tile size (32) for rendering, but note the actual texture size
-        console.log(`✅ Tiles will render at ${this.tileSize}x${this.tileSize} (scaled from ${actualTileWidth}x${actualTileHeight})`)
+        // Update the actual tile size to match what we found
+        this.actualTileSize = Math.min(actualTileWidth, actualTileHeight)
+        console.log(`✅ Tiles will render at ${this.tileSize}x${this.tileSize} (scaled from ${this.actualTileSize}x${this.actualTileSize})`)
       }
     } catch (error) {
       console.error('❌ Failed to load terrain sprite sheet:', error)
+      console.error('Error details:', error)
+    }
+  }
+
+  private async loadDecorationSheet(): Promise<void> {
+    try {
+      console.log('🔄 Loading decoration sprite sheet...')
+      this.decorationTexture = await Assets.load('/sprites/terrain_decoration-10x6.png')
+      console.log('✅ Decoration sprite sheet loaded successfully!')
+      console.log(`📊 Sheet contains ${this.totalDecorationTiles} decoration tiles (${this.decorationTilesPerRow}x${this.decorationTilesPerColumn})`)
+      console.log('🔍 Decoration texture dimensions:', this.decorationTexture.width, 'x', this.decorationTexture.height)
+    } catch (error) {
+      console.error('❌ Failed to load decoration sprite sheet:', error)
       console.error('Error details:', error)
     }
   }
@@ -106,7 +134,7 @@ export interface BiomeType {
    */
   createTerrainTile(tileType: number, x: number, y: number, biome?: string): TerrainTile | null {
     if (!this.terrainTexture || tileType < 0 || tileType >= this.totalTiles) {
-      console.warn(`⚠️ Invalid tile type: ${tileType}. Must be 0-${this.totalTiles - 1}`)
+      console.warn(`⚠️ Invalid tile type: ${tileType}. Must be 0-${this.totalTiles - 1} (20 tiles total)`)
       return null
     }
 
@@ -146,8 +174,8 @@ export interface BiomeType {
     sprite.alpha = 0.25 + Math.random() * 0.75 // Set terrain tiles to random opacity between 25% and 100%
     
     // Scale the sprite to render at the desired tile size (32x32)
-    // The actual texture tile size is 16x16, so we scale by 2x to get 32x32
-    const scaleFactor = this.tileSize / this.actualTileSize // 32 / 16 = 2
+    // The actual texture tile size is 32x32, so no scaling needed
+    const scaleFactor = this.tileSize / this.actualTileSize // 32 / 32 = 1
     sprite.scale.set(scaleFactor, scaleFactor)
     
     // Apply biome color tint if available
@@ -165,6 +193,110 @@ export interface BiomeType {
       y,
       biome
     }
+  }
+
+  /**
+   * Create a decoration tile sprite from the decoration sprite sheet
+   * @param tileType - The decoration tile type (0-59, where 0-9 are first row, 10-19 are second row, etc.)
+   * @param x - World X coordinate
+   * @param y - World Y coordinate
+   * @returns DecorationTile object with sprite and metadata
+   */
+  createDecorationTile(tileType: number, x: number, y: number): DecorationTile | null {
+    if (!this.decorationTexture || tileType < 0 || tileType >= this.totalDecorationTiles) {
+      console.warn(`⚠️ Invalid decoration tile type: ${tileType}. Must be 0-${this.totalDecorationTiles - 1} (60 tiles total)`)
+      return null
+    }
+
+    // Calculate the position of the tile in the sprite sheet
+    const row = Math.floor(tileType / this.decorationTilesPerRow)
+    const col = tileType % this.decorationTilesPerRow
+    
+    // Calculate tile position using actual texture tile size
+    const tileX = col * this.actualTileSize
+    const tileY = row * this.actualTileSize
+    
+    // Safety check: ensure the tile rectangle fits within the texture
+    if (tileX + this.actualTileSize > this.decorationTexture.width || tileY + this.actualTileSize > this.decorationTexture.height) {
+      console.warn(`⚠️ Decoration tile ${tileType} (row ${row}, col ${col}) would exceed texture bounds!`)
+      return null
+    }
+    
+    // Create a texture rectangle for this specific tile
+    const tileRect = new Rectangle(
+      tileX,
+      tileY,
+      this.actualTileSize,
+      this.actualTileSize
+    )
+    
+    // Create a new texture from the rectangle
+    const tileTexture = new Texture(this.decorationTexture.baseTexture, tileRect)
+    
+    // Create the sprite
+    const sprite = new Sprite(tileTexture)
+    sprite.x = x
+    sprite.y = y
+    sprite.anchor.set(0, 0) // Top-left anchor for tiles
+    sprite.zIndex = -5000 // Ensure decorations render above terrain but below other sprites
+    sprite.alpha = 0.6 + Math.random() * 0.4 // Set decoration tiles to random opacity between 60% and 100%
+    
+    // Scale the sprite to render at the desired tile size (32x32)
+    // The actual texture tile size is 32x32, so no scaling needed
+    const scaleFactor = this.tileSize / this.actualTileSize // 32 / 32 = 1
+    sprite.scale.set(scaleFactor, scaleFactor)
+    
+    return {
+      sprite,
+      tileType,
+      x,
+      y
+    }
+  }
+
+  /**
+   * Generate sparse decorations across the world
+   * @param options - Terrain generation options
+   * @returns Array of DecorationTile objects
+   */
+  generateSparseDecorations(options: TerrainGenerationOptions): DecorationTile[] {
+    console.log('🌿 Generating sparse decorations...')
+    
+    const decorations: DecorationTile[] = []
+    const decorationDensity = 0.02 // 2% of tiles will have decorations (very sparse)
+    
+    // Calculate grid dimensions
+    const gridWidth = Math.ceil(options.worldWidth / options.tileSize)
+    const gridHeight = Math.ceil(options.worldHeight / options.tileSize)
+    
+    console.log(`📊 Generating decorations for ${gridWidth}x${gridHeight} grid with ${decorationDensity * 100}% density`)
+    
+    // Create seeded random for consistent decoration placement
+    const randomFn = this.createSeededRandom(options.biomeSeed ? options.biomeSeed + 1000 : undefined)
+    
+    // Place decorations sparsely
+    for (let gridY = 0; gridY < gridHeight; gridY++) {
+      for (let gridX = 0; gridX < gridWidth; gridX++) {
+        // Only place decoration if random check passes (sparse placement)
+        if (randomFn() < decorationDensity) {
+          // Random decoration tile type (0-59)
+          const decorationType = Math.floor(randomFn() * this.totalDecorationTiles)
+          
+          // Calculate world position
+          const worldX = gridX * options.tileSize
+          const worldY = gridY * options.tileSize
+          
+          // Create decoration tile
+          const decoration = this.createDecorationTile(decorationType, worldX, worldY)
+          if (decoration) {
+            decorations.push(decoration)
+          }
+        }
+      }
+    }
+    
+    console.log(`✅ Generated ${decorations.length} decoration tiles`)
+    return decorations
   }
 
   /**
