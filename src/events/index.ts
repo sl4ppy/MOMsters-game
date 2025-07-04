@@ -7,6 +7,7 @@ import { EventBusImpl } from './EventBus';
 
 // Game event types and factory
 export * from './GameEvents';
+export * from './InputEvents';
 
 // Re-export common types for convenience
 export type {
@@ -23,6 +24,6 @@ export type {
 export * from '../ecs/systems/EventDrivenSystems';
 
 // Create default event bus instance
-export const createEventBus = (historySize: number = 1000) => {
+export const createEventBus = (historySize: number = 1000): EventBusImpl => {
   return new EventBusImpl(historySize);
 };
