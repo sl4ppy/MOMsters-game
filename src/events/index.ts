@@ -8,6 +8,7 @@ import { EventBusImpl } from './EventBus';
 // Game event types and factory
 export * from './GameEvents';
 export * from './InputEvents';
+export * from './CameraEvents';
 
 // Re-export common types for convenience
 export type {
