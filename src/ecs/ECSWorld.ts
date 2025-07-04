@@ -26,6 +26,7 @@ export class ECSWorldImpl implements ECSWorld {
     try {
       this.systemManager.initializeSystems();
       this.isInitialized = true;
+      // eslint-disable-next-line no-console
       console.log('🌍 ECS World initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize ECS World:', error);
@@ -54,6 +55,7 @@ export class ECSWorldImpl implements ECSWorld {
       this.systemManager.shutdownSystems();
       this.entityManager.clear();
       this.isShutdown = true;
+      // eslint-disable-next-line no-console
       console.log('🌍 ECS World shutdown successfully');
     } catch (error) {
       console.error('❌ Error shutting down ECS World:', error);
@@ -105,4 +107,4 @@ export class ECSWorldImpl implements ECSWorld {
       isShutdown: this.isShutdown,
     };
   }
-} 
+}

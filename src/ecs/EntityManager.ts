@@ -8,6 +8,7 @@ import { ComponentStoreImpl } from './ComponentStore';
  */
 export class EntityManagerImpl implements EntityManager {
   private entities: Map<EntityId, Entity> = new Map();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private componentStores: Map<ComponentType, ComponentStoreImpl<any>> = new Map();
   private entityComponents: Map<EntityId, Set<ComponentType>> = new Map();
   private nextEntityId = 1;
@@ -15,10 +16,10 @@ export class EntityManagerImpl implements EntityManager {
   public createEntity(): Entity {
     const id = createEntityId(this.nextEntityId++);
     const entity: Entity = { id };
-    
+
     this.entities.set(id, entity);
     this.entityComponents.set(id, new Set());
-    
+
     return entity;
   }
 
@@ -118,7 +119,7 @@ export class EntityManagerImpl implements EntityManager {
     for (const [entityId, entity] of this.entities) {
       if (this.matchesQuery(entityId, query)) {
         results.push(entity);
-        
+
         // Apply limit if specified
         if (query.limit && results.length >= query.limit) {
           break;
@@ -185,7 +186,9 @@ export class EntityManagerImpl implements EntityManager {
     return entities;
   }
 
-  public getComponentStore<T extends Component>(componentType: ComponentType): ComponentStoreImpl<T> | null {
+  public getComponentStore<T extends Component>(
+    componentType: ComponentType
+  ): ComponentStoreImpl<T> | null {
     return this.componentStores.get(componentType) || null;
   }
 
@@ -206,4 +209,4 @@ export class EntityManagerImpl implements EntityManager {
     this.componentStores.clear();
     this.nextEntityId = 1;
   }
-} 
+}

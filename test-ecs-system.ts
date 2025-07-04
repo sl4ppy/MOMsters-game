@@ -1,7 +1,8 @@
+/* eslint-disable no-console, @typescript-eslint/no-unused-vars */
 import { ECSWorld } from './src/ecs/index';
-import { 
-  createPositionComponent, 
-  createVelocityComponent, 
+import {
+  createPositionComponent,
+  createVelocityComponent,
   createTransformComponent,
   createRenderComponent,
   createMovementComponent,
@@ -12,11 +13,11 @@ import {
   MOVEMENT_COMPONENT,
   PositionComponent,
 } from './src/ecs/components/BaseComponents';
-import { 
-  MovementSystem, 
-  RenderSystem, 
-  PhysicsSystem, 
-  TransformSyncSystem 
+import {
+  MovementSystem,
+  RenderSystem,
+  PhysicsSystem,
+  TransformSyncSystem,
 } from './src/ecs/systems/BaseSystems';
 
 async function testECSSystem(): Promise<void> {
@@ -25,7 +26,7 @@ async function testECSSystem(): Promise<void> {
   // Test 1: Create ECS World
   console.log('1️⃣ Creating ECS World:');
   const world = new ECSWorld();
-  
+
   try {
     console.log('✅ ECS World created successfully');
     console.log('📊 Initial stats:', world.getStats());
@@ -128,7 +129,10 @@ async function testECSSystem(): Promise<void> {
     console.log('📊 Before update:');
     const positionsBefore = world.entityManager.query({ with: [POSITION_COMPONENT] });
     for (const entity of positionsBefore) {
-      const position = world.entityManager.getComponent<PositionComponent>(entity.id, POSITION_COMPONENT);
+      const position = world.entityManager.getComponent<PositionComponent>(
+        entity.id,
+        POSITION_COMPONENT
+      );
       if (position) {
         console.log(`  Entity ${entity.id}: (${position.x}, ${position.y})`);
       }
@@ -143,7 +147,10 @@ async function testECSSystem(): Promise<void> {
     console.log('📊 After update:');
     const positionsAfter = world.entityManager.query({ with: [POSITION_COMPONENT] });
     for (const entity of positionsAfter) {
-      const position = world.entityManager.getComponent<PositionComponent>(entity.id, POSITION_COMPONENT);
+      const position = world.entityManager.getComponent<PositionComponent>(
+        entity.id,
+        POSITION_COMPONENT
+      );
       if (position) {
         console.log(`  Entity ${entity.id}: (${position.x.toFixed(2)}, ${position.y.toFixed(2)})`);
       }
@@ -161,7 +168,7 @@ async function testECSSystem(): Promise<void> {
     const entities = world.entityManager.getAllEntities();
     if (entities.length > 0) {
       const firstEntity = entities[0];
-      
+
       // Check if entity has position component
       const hasPosition = world.entityManager.hasComponent(firstEntity.id, POSITION_COMPONENT);
       console.log(`✅ Entity ${firstEntity.id} has position component: ${hasPosition}`);
@@ -169,12 +176,16 @@ async function testECSSystem(): Promise<void> {
       // Remove a component
       world.entityManager.removeComponent(firstEntity.id, VELOCITY_COMPONENT);
       const hasVelocity = world.entityManager.hasComponent(firstEntity.id, VELOCITY_COMPONENT);
-      console.log(`✅ Entity ${firstEntity.id} has velocity component after removal: ${hasVelocity}`);
+      console.log(
+        `✅ Entity ${firstEntity.id} has velocity component after removal: ${hasVelocity}`
+      );
 
       // Add it back
       world.entityManager.addComponent(firstEntity.id, createVelocityComponent(10, 10));
       const hasVelocityAgain = world.entityManager.hasComponent(firstEntity.id, VELOCITY_COMPONENT);
-      console.log(`✅ Entity ${firstEntity.id} has velocity component after re-adding: ${hasVelocityAgain}`);
+      console.log(
+        `✅ Entity ${firstEntity.id} has velocity component after re-adding: ${hasVelocityAgain}`
+      );
     }
   } catch (error) {
     console.error('❌ Component manipulation failed:', error);
@@ -191,7 +202,7 @@ async function testECSSystem(): Promise<void> {
     if (entities.length > 0) {
       const entityToDestroy = entities[0];
       world.entityManager.destroyEntity(entityToDestroy.id);
-      
+
       const finalCount = world.entityManager.getEntityCount();
       console.log(`📊 Final entity count: ${finalCount}`);
       console.log(`✅ Entity destruction successful: ${finalCount < initialCount}`);
@@ -204,7 +215,7 @@ async function testECSSystem(): Promise<void> {
   console.log('\n9️⃣ Final stats and cleanup:');
   try {
     console.log('📊 Final ECS World stats:', world.getDetailedStats());
-    
+
     world.shutdown();
     console.log('✅ ECS World shutdown successfully');
   } catch (error) {
@@ -217,4 +228,4 @@ async function testECSSystem(): Promise<void> {
 // Run tests immediately
 testECSSystem().catch(console.error);
 
-export { testECSSystem }; 
+export { testECSSystem };

@@ -46,6 +46,7 @@ export function createVelocityComponent(vx: number, vy: number, vz?: number): Ve
 // Render component
 export interface RenderComponent extends Component {
   type: ComponentType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sprite?: any; // PIXI.Sprite or similar
   visible: boolean;
   scale: number;
@@ -180,4 +181,4 @@ export function createCollisionComponent(
     mask,
     isTrigger,
   };
-} 
+}

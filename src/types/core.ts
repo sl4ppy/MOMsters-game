@@ -39,9 +39,11 @@ export type DeepReadonly<T> = {
 export interface GameEvent {
   type: string;
   timestamp: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface TypedGameEvent<T = any> extends GameEvent {
   data: T;
 }

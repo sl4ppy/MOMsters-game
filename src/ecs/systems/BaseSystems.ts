@@ -1,9 +1,10 @@
+/* eslint-disable no-console */
 import { SystemType, createSystemType } from '../../types/core';
 import { System, EntityManager } from '../interfaces';
-import { 
-  POSITION_COMPONENT, 
-  VELOCITY_COMPONENT, 
-  RENDER_COMPONENT, 
+import {
+  POSITION_COMPONENT,
+  VELOCITY_COMPONENT,
+  RENDER_COMPONENT,
   MOVEMENT_COMPONENT,
   TRANSFORM_COMPONENT,
   PositionComponent,
@@ -21,7 +22,7 @@ import {
 export class MovementSystem implements System {
   public readonly type: SystemType = createSystemType('movement');
   public readonly priority: number = 10;
-  
+
   private entityManager: EntityManager;
 
   constructor(entityManager: EntityManager) {
@@ -68,7 +69,7 @@ export class MovementSystem implements System {
 export class RenderSystem implements System {
   public readonly type: SystemType = createSystemType('render');
   public readonly priority: number = 100; // Render last
-  
+
   private entityManager: EntityManager;
 
   constructor(entityManager: EntityManager) {
@@ -90,10 +91,7 @@ export class RenderSystem implements System {
         entity.id,
         TRANSFORM_COMPONENT
       );
-      const render = this.entityManager.getComponent<RenderComponent>(
-        entity.id,
-        RENDER_COMPONENT
-      );
+      const render = this.entityManager.getComponent<RenderComponent>(entity.id, RENDER_COMPONENT);
 
       if (transform && render && render.sprite) {
         // Update sprite properties from transform
@@ -103,7 +101,7 @@ export class RenderSystem implements System {
         render.sprite.scale.x = transform.scale.x;
         render.sprite.scale.y = transform.scale.y;
         render.sprite.visible = render.visible;
-        
+
         if (render.tint !== undefined) {
           render.sprite.tint = render.tint;
         }
@@ -120,7 +118,7 @@ export class RenderSystem implements System {
 export class PhysicsSystem implements System {
   public readonly type: SystemType = createSystemType('physics');
   public readonly priority: number = 5; // Update before movement
-  
+
   private entityManager: EntityManager;
 
   constructor(entityManager: EntityManager) {
@@ -164,8 +162,8 @@ export class PhysicsSystem implements System {
         // Apply drag if present
         if (movement.drag) {
           const drag = movement.drag * deltaSeconds;
-          velocity.vx *= (1 - drag);
-          velocity.vy *= (1 - drag);
+          velocity.vx *= 1 - drag;
+          velocity.vy *= 1 - drag;
         }
       }
     }
@@ -180,7 +178,7 @@ export class PhysicsSystem implements System {
 export class TransformSyncSystem implements System {
   public readonly type: SystemType = createSystemType('transform_sync');
   public readonly priority: number = 15; // After movement, before render
-  
+
   private entityManager: EntityManager;
 
   constructor(entityManager: EntityManager) {
@@ -221,4 +219,4 @@ export class TransformSyncSystem implements System {
   public shutdown(): void {
     console.log('🛑 Transform sync system shutdown');
   }
-} 
+}
