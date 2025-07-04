@@ -3,6 +3,19 @@ export type EntityId = string & { __brand: 'EntityId' };
 export type ComponentType = string & { __brand: 'ComponentType' };
 export type SystemType = string & { __brand: 'SystemType' };
 
+// Factory functions for branded types
+export function createEntityId(id: number): EntityId {
+  return `entity_${id}` as EntityId;
+}
+
+export function createComponentType(type: string): ComponentType {
+  return type as ComponentType;
+}
+
+export function createSystemType(type: string): SystemType {
+  return type as SystemType;
+}
+
 // Vector types
 export interface Vector2 {
   x: number;
