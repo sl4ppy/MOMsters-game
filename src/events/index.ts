@@ -9,6 +9,8 @@ import { EventBusImpl } from './EventBus';
 export * from './GameEvents';
 export * from './InputEvents';
 export * from './CameraEvents';
+// TODO: Resolve conflicts with GameEvents before enabling
+// export * from './PlayerEvents';
 
 // Re-export common types for convenience
 export type {
