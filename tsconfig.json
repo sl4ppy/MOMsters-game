@@ -18,8 +18,8 @@
     "paths": {
       "@/*": ["*"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test-*.ts"],
   "exclude": ["node_modules", "dist"]
 } 

@@ -1,127 +1,141 @@
-# 🧛 MOMsters! - a survivor-like bullet-heaven game
+# 🧟 MOMsters! - a survivor-like bullet-heaven game
 
-## 🎮 [▶️ **PLAY NOW**](https://sl4ppy.github.io/MOMsters-game/) ⚡
+## ▶️ [PLAY NOW](https://sl4ppy.github.io/MOMsters-game/) ⚡
 
-A browser-based roguelike survival game built with PixiJS and TypeScript, inspired by Vampire Survivors.
-
-**✨ Now with 30 unique enemies, wave-based spawning system, and a Giant Chicken King boss!**
+A modernized browser-based roguelike survival game built with PixiJS and TypeScript, inspired by Vampire Survivors.
 
 ---
 
-## 🆕 Major Features
-- **Wave-Based Survival Mode**: 15.5-minute campaign with 21 distinct waves
-- **30 unique enemy types** with strategic wave progression
-- **Special Wave Events**: Circle Formation, Boss Events, Swarm Attacks, Final Assault
-- **Overlapping Waves**: 30-second overlaps create dynamic multi-enemy encounters
-- **Giant Chicken King Boss**: Epic final boss with custom sprite at 3x scale
-- **Enhanced HUD**: Real-time wave information, progress tracking, and event notifications
-- **Custom Sprite System**: Support for special enemy sprites beyond the main atlas
-- **Animated fireball projectile** as the main attack
-- **2 XP gem types**: 1XP (green), 10XP (orange)
-- **Godzilla player character** (default, no fallback)
-- **Upgrade system**: Health, speed, magnet range, attack interval, piercing, and more
-- **New terrain and decoration systems** for richer environments
+## 🚀 What's New (v2.x)
+- **Modern ECS architecture**: Modular, scalable entity-component-system core
+- **Event-driven game logic**: Central event bus for decoupled systems
+- **Advanced UI**: Settings menu (audio, graphics, controls, gameplay), pause screen, improved HUD with stats block and mute button
+- **Audio system**: Web Audio API, spatial SFX, fallback tones, mute by default, volume controls, event-driven playback
+- **Save/Load system**: LocalStorage saves, settings persistence, export/import
+- **Performance monitor**: FPS, memory, CPU tracking, auto-optimization
+- **Particle system**: Explosions, sparkles, trails, magic effects
+- **Advanced enemy AI**: Behavior trees, formations, dynamic events
+- **Item & power-up system**: Inventory, equipment, crafting, power-ups
+- **Comprehensive test harness**: Build, deploy, integration, and system tests
+- **CDN & cache-busting**: Reliable asset delivery and update propagation
+- **Audio is now muted by default** (click the speaker or press 'M' to unmute)
 
 ---
 
-## 🌊 Wave System Overview
-
-### 📅 **15.5-Minute Survival Campaign**
-- **21 Progressive Waves** (0-15.5 minutes)
-- **Overlapping Design**: Each wave starts 30 seconds before the previous ends
-- **Dynamic Difficulty**: Spawn rates increase from 50/s to 275/s
-- **Strategic Progression**: Enemy types introduced at optimal challenge points
-
-### 🎭 **Special Wave Events**
-- **Circle Formation**: Enemies spawn in circles around the player
-- **Boss Events**: Single powerful enemies (Green Dragon, Void, Skull King)
-- **Swarm Attacks**: Burst spawning of multiple enemies
-- **Final Assault**: Multi-point spawning with maximum intensity
-
-### 🐔 **Epic Boss Battles**
-- **Wave 7** (4.5-5.25 min): Green Dragon Boss
-- **Wave 14** (9.5-10.25 min): Void Boss  
-- **Wave 21** (14.5-15.5 min): **Giant Chicken King** (Final Boss)
-
----
-
-## 👾 Enemy Roster (All 30 Types)
-**Early Game (Waves 1-6):**
-Blob, Goblin, Plant, Hobgoblin, Mermaid, Gargoyle, ChompChest, TreeEnt, Reaper, Palomino
-
-**Mid Game (Waves 7-14):**
-Green Dragon, Red Dragon, Blue Dragon, Skeleton, Mollusk, Banshee, Floating Maw, Cacodemon, Sea Hag, Demon
-
-**Late Game (Waves 15-21):**
-Centaur, Green Orc, Golden Orc, Void, Golem, Ice Golem, Jawa, Mud Golem, Skull, PlasmaMan
-
-**Final Boss:**
-**🐔 Giant Chicken King** - 500 HP, 50 Damage, 3x Scale, 100 XP Reward
-
----
-
-## 🛡️ Player Abilities & Upgrades
-- **Auto-fire**: Animated fireball projectiles
-- **Upgrades** (choose on level up):
-  - Max Health
-  - Health Regeneration
-  - Move Speed
-  - Magnet Range (XP pickup distance)
-  - Attack Interval (fire rate)
-  - Projectile Piercing
-  - (More coming soon!)
-
----
-
-## 🟢 XP Gems
-- **Green Gem**: 1 XP
-- **Orange Gem**: 10 XP
-- Gems are attracted to the player when in magnet range
-
----
-
-## 🌎 Terrain & Decoration
-- Multiple terrain tile atlases
-- Randomly placed decorative elements for visual variety
-
----
-
-## 🎯 Completed Features
-- [x] **Core Game Engine** (PixiJS, TypeScript, camera, collision, etc)
-- [x] **Wave-Based Spawning System** (21 waves, 15.5-minute campaign)
-- [x] **Special Wave Events** (Circle Formation, Boss Events, Swarm Attacks, Final Assault)
-- [x] **Overlapping Wave Design** (30-second overlaps for dynamic gameplay)
-- [x] **30 unique enemy types** with strategic wave progression
-- [x] **Custom Sprite System** (special enemies can use individual sprites)
-- [x] **Giant Chicken King Boss** (final boss with custom sprite and 3x scale)
-- [x] **Enhanced HUD** (wave info, progress tracking, event notifications)
-- [x] **Animated fireball projectile** system
-- [x] **Godzilla player character** (default, no fallback)
-- [x] **Experience & Leveling** (XP gems, upgrades)
-- [x] **Upgrade system** (health, speed, magnet, attack interval, piercing, etc)
-- [x] **Terrain & Decoration** (multiple atlases, random placement)
-- [x] **UI/HUD** (health, XP, timer, upgrades, screens)
-- [x] **Comprehensive test harness & CI/CD**
-
----
-
-## 🔄 Current Development
-- [ ] Visual effects (particles, screen shake, death anims)
-- [ ] Audio system (music, SFX)
-- [ ] More upgrades and abilities
-- [ ] Advanced enemy behaviors
-
----
-
-## 🎮 Controls
+## 🕹️ Controls
 - **Movement**: WASD or Arrow Keys
 - **Game Start**: SPACE or ENTER (on title screen)
 - **Upgrades**: 1, 2, 3 keys (during level up)
+- **Pause**: ESC
+- **Settings**: S
+- **Mute/Unmute**: M or click the speaker icon
 - **Restart**: R key (on game over screen)
 
 ---
 
-## 📝 For full details, see the rest of this README and the [test documentation](tests/README.md).
+## 🧩 Major Features
+- **Wave-Based Survival Mode**: 21 waves, 15.5-minute campaign
+- **30+ unique enemy types** with advanced AI and events
+- **Special Wave Events**: Circle, Boss, Swarm, Final Assault
+- **Epic Boss Battles**: Green Dragon, Void, Giant Chicken King
+- **Player Upgrades**: Health, speed, magnet, attack, piercing, more
+- **Auto-fire weapons**: Multiple types, projectiles, stats tracking
+- **Experience & Leveling**: XP gems, upgrades, power-ups
+- **Terrain & Decoration**: Multiple atlases, random placement
+- **Modern UI**: HUD, settings, pause, notifications, tooltips
+- **Audio**: SFX, music, fallback tones, spatial, mute by default
+- **Save/Load**: LocalStorage, settings, export/import
+- **Performance Monitor**: FPS, memory, CPU, auto-optimize
+- **Particle Effects**: Explosions, sparkles, trails, magic
+- **Comprehensive Testing**: Build, deploy, integration, system
+
+---
+
+## 🏗️ Architecture
+- **ECS Core**: Modular, scalable entity-component-system
+- **Event System**: Central event bus for decoupled logic
+- **Core Systems**: Input, camera, collision, player, enemy, weapon, leveling, terrain, item, power-up
+- **UI Components**: HUD, settings, pause, level up, game over, title
+- **AudioManager**: Web Audio API, fallback, spatial, mute by default
+- **SaveManager**: LocalStorage, compression, validation
+- **PerformanceMonitor**: FPS, memory, CPU, auto-optimize
+- **ParticleSystem**: Object pooling, configurable emitters
+
+---
+
+## 🧪 Testing & Quality Assurance
+- **Test harness**: Build, deploy, integration, system tests
+- **CI/CD**: GitHub Actions for automated validation and deployment
+- **How to test**: See [tests/README.md](tests/README.md)
+- **Audio is muted by default**: Unmute with 'M' or the HUD button
+
+---
+
+## 🛠️ Tech Stack
+- **PixiJS 7.x**: 2D WebGL rendering
+- **TypeScript**: Type-safe development
+- **Vite**: Fast build/dev server
+- **GitHub Actions**: CI/CD
+- **GitHub Pages**: Hosting
+- **Puppeteer**: Integration testing
+
+---
+
+## 🏁 Quick Start
+
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn
+
+### Installation
+```bash
+git clone https://github.com/sl4ppy/MOMsters-game.git
+cd MOMsters-game
+npm install
+```
+
+### Development
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Deploy to GitHub Pages
+```bash
+npm run deploy
+```
+
+---
+
+## 🤝 Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Run tests (`npm run test:all`)
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+---
+
+## 📝 License
+MIT License - see [LICENSE](LICENSE)
+
+---
+
+## 🎖️ Credits
+Inspired by Vampire Survivors by poncle.
+
+---
+
+## 🔗 Links
+- **Play the Game**: [https://sl4ppy.github.io/MOMsters/](https://sl4ppy.github.io/MOMsters/)
+- **Test Documentation**: [tests/README.md](tests/README.md)
+- **GitHub Repository**: [https://github.com/sl4ppy/MOMsters](https://github.com/sl4ppy/MOMsters)
 
 ## 🎮 Game Overview
 

@@ -28,6 +28,27 @@ npm run test:deployment
 npm run test:integration
 ```
 
+## 🚀 What's New in Testing
+- **ECS & Event System**: Test entity-component-system and event-driven logic
+- **Advanced UI**: Test settings menu, pause screen, HUD, mute button
+- **Audio System**: Test SFX, music, fallback tones, mute-by-default (press 'M' or click speaker to unmute)
+- **Save/Load**: Test localStorage saves, settings, export/import
+- **Performance Monitor**: Test FPS, memory, CPU, auto-optimize
+- **Particle System**: Test explosions, sparkles, trails, magic
+- **Advanced AI & Items**: Test enemy behaviors, inventory, power-ups
+
+## 🔊 Audio Testing
+- **Audio is muted by default** for new users and on reset
+- To test audio: Unmute with the HUD speaker button or press 'M'
+- Test SFX by attacking, picking up XP, leveling up, etc.
+- Test music and volume controls in the settings menu
+
+## 🧪 UI & System Testing
+- Open settings (S) and pause (ESC) menus
+- Adjust audio, graphics, controls, and gameplay settings
+- Test mute/unmute, tooltips, and notifications
+- Check HUD stats block for correct info and no overlap
+
 ## 📋 Test Suites
 
 ### 1. Build Validation (`npm run test:build`)
