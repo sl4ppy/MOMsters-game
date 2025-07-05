@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOMsters - Survival Arena - v2.0.2 CACHE BREAK</title>
+    
+    <!-- NUCLEAR CACHE BUSTING - FORCE CDN REFRESH -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate">
+    <meta http-equiv="Pragma" content="no-cache, no-store">
+    <meta http-equiv="Expires" content="-1">
+    <meta name="cache-bust" content="1751253500000">
+    <meta name="cache-control" content="no-cache, no-store">
+    <meta name="expires" content="Thu, 01 Jan 1970 00:00:01 GMT">
+    <meta name="last-modified" content="Mon, 30 Dec 2024 21:00:00 GMT">
+    <meta name="vary" content="*">
+    
+    <!-- Force immediate cache invalidation -->
+    <meta name="timestamp" content="1751253500000">
+    <meta name="version" content="MOMSTERS-v2.0.2-NUCLEAR-CACHE-BREAK">
+    <meta name="deployment-id" content="ULTRA-FORCE-REFRESH-1751253500000">
+    
+    <!-- Additional CDN cache breaking -->
+    <link rel="preload" href="/MOMsters-game/assets/?v=1751253500000&force=refresh&nuclear=true" as="fetch" crossorigin>
+    
+    <!-- NUCLEAR CACHE COMMENTS -->
+    <!-- FORCE-REFRESH-CDN: 1751253500-NUCLEAR-OPTION -->
+    <!-- Cache-bust: 1751253500-FORCE-REFRESH-NUCLEAR-DEPLOYMENT -->
+    <!-- Version: MOMSTERS-v2.0.2-NUCLEAR-CACHE-BREAK -->
+    <!-- DEPLOYMENT-TIMESTAMP: 2024-12-30-21:00:00-NUCLEAR -->
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a2e;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        #gameContainer {
+            border: 2px solid #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #loadingText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #e94560;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        canvas {
+            display: block;
+            background: #0f3460;
+        }
+        
+        .cache-debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+    </style>
+  <script type="module" crossorigin src="/MOMsters-game/assets/main-BYjGEXdZ-1751731084935-ULTRA-CACHE-BREAK.js"></script>
+</head>
+<body>
+            <div class="cache-debug">
+        DEPLOYMENT: v2.0.2-NUCLEAR<br>
+        TIMESTAMP: 1751253500000<br>
+        CACHE-BREAK: ACTIVE
+    </div>
+    
+    <div id="gameContainer">
+        <div id="loadingText">Loading MOMsters v2.0.2...</div>
+    </div>
+    
+    <!-- Nuclear cache-busted script -->
+    
+    <!-- NUCLEAR CACHE-BUSTING SCRIPT -->
+    <script>
+        console.log('%c🚀 MOMsters v2.0.2 - NUCLEAR CACHE BREAK DEPLOYMENT', 'color: #0f0; font-size: 16px; font-weight: bold;');
+        console.log('Deployment timestamp: 1751253500000');
+        console.log('If you see old content, this is a CDN caching issue.');
+        
+        // NUCLEAR cache clearing
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('Service worker unregistered');
+                }
+            });
+        }
+        
+        // Force reload if old title detected
+        if (document.title.includes('Vampire Survivors') && !document.title.includes('CACHE BREAK')) {
+            console.log('OLD TITLE DETECTED - FORCING RELOAD');
+            window.location.href = window.location.href + '?nuclear=' + Date.now() + '&force=refresh';
+        }
+        
+        // Force reload if old version detected
+        if (document.title.includes('v2.0') && !document.title.includes('v2.0.2')) {
+            console.log('OLD VERSION DETECTED - FORCING RELOAD');
+            window.location.href = window.location.href + '?nuclear=' + Date.now() + '&v=2.0.2&force=refresh';
+        }
+        
+        // Clear ALL stored cache
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                    console.log('Cache deleted:', name);
+                }
+            });
+        }
+        
+        // Force reload with cache busting if we detect we're still cached
+        setTimeout(() => {
+            const timestamp = document.querySelector('meta[name="timestamp"]');
+            if (!timestamp || timestamp.content !== '1751253500000') {
+                console.log('CACHE DETECTED - FORCING NUCLEAR RELOAD');
+                window.location.href = window.location.href.split('?')[0] + '?nuclear=' + Date.now() + '&v=2.0&force=true';
+            }
+        }, 1000);
+        
+        // Add cache-busting to all future requests
+        if ('fetch' in window) {
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                if (args[0] && typeof args[0] === 'string') {
+                    const url = new URL(args[0], window.location.href);
+                    url.searchParams.set('cb', Date.now());
+                    url.searchParams.set('v', '2.0');
+                    args[0] = url.toString();
+                }
+                return originalFetch.apply(this, args);
+            };
+        }
+    </script>
+</body>
+</html> 
