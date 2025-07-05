@@ -1,11 +1,17 @@
-import { Graphics, Sprite, Container } from 'pixi.js';
-import { Collidable, CollisionGroup } from '../core/CollisionManager';
+import { Collidable, CollisionGroup } from '../types/CollisionTypes';
+import { Container } from 'pixi.js';
 import { Player } from './Player';
+import { Projectile } from './Projectile';
 
 export abstract class Enemy implements Collidable {
   public sprite: Container;
   public collisionRadius: number;
   public collisionGroup: CollisionGroup = CollisionGroup.ENEMY;
+
+  // AI properties
+  public target?: Player;
+  public formationIndex?: number;
+  public formationSize?: number;
 
   protected health: number;
   protected maxHealth: number;
@@ -36,6 +42,44 @@ export abstract class Enemy implements Collidable {
    * Abstract method - each enemy type must implement its own visual appearance
    */
   protected abstract createSprite(): void;
+
+  /**
+   * Set the target for AI behavior
+   */
+  setTarget(target: Player): void {
+    this.target = target;
+  }
+
+  /**
+   * Attack the target (called by AI system)
+   */
+  attack(): void {
+    if (this.target && this.isAlive) {
+      // This will trigger collision with player
+      // The actual damage is handled in the collision system
+    }
+  }
+
+  /**
+   * Check if enemy is active (alive and has target)
+   */
+  isActive(): boolean {
+    return this.isAlive && this.target !== undefined;
+  }
+
+  /**
+   * Get current health
+   */
+  get currentHealth(): number {
+    return this.health;
+  }
+
+  /**
+   * Get maximum health
+   */
+  get maximumHealth(): number {
+    return this.maxHealth;
+  }
 
   /**
    * Update enemy behavior - movement, AI, etc.
@@ -72,7 +116,7 @@ export abstract class Enemy implements Collidable {
   /**
    * Update enemy orientation to face direction of travel (horizontal flip)
    */
-  protected updateRotation(dx: number, dy: number): void {
+  protected updateRotation(dx: number, _dy: number): void {
     // Keep sprite upright, only flip horizontally based on movement direction
     if (dx < 0) {
       // Moving left - flip horizontally
@@ -87,19 +131,10 @@ export abstract class Enemy implements Collidable {
   /**
    * Handle collision with other entities
    */
-  onCollision(other: Collidable): void {
-    if (other.collisionGroup === CollisionGroup.PLAYER) {
-      // Deal damage to player (will be handled by player's collision response)
-      // Less verbose logging for combat
-    }
-
-    if (other.collisionGroup === CollisionGroup.PROJECTILE) {
-      // Take damage from projectile
-      const projectile = other as any;
-      const damage = projectile.projectileDamage || 10; // Use projectile's damage or default
-
-      this.takeDamage(damage);
-      // Less verbose logging for better gameplay experience
+  onCollision(other: Entity): void {
+    if (other instanceof Projectile) {
+      const projectile = other as Projectile; // Cast to access projectile properties
+      this.takeDamage(projectile.damage);
     }
   }
 

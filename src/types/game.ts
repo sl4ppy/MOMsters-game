@@ -107,3 +107,8 @@ export interface UserSettings {
     textSize: 'small' | 'medium' | 'large';
   };
 }
+
+export interface GameConfig {
+  // ... existing properties ...
+  specialConfig?: Record<string, unknown>;
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOMsters Audio Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .audio-controls {
+            margin: 10px 0;
+        }
+        .status {
+            color: #ff9800;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .volume-controls {
+            margin: 10px 0;
+        }
+        input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 MOMsters Audio Test</h1>
+    <p>This page tests the audio system with fallback sounds. The AudioManager will generate simple tones when audio files are missing.</p>
+
+    <div class="container">
+        <h2>🎮 Test Audio Events</h2>
+        <div class="audio-controls">
+            <button onclick="testAudioEvent('ui_click')">Test UI Click</button>
+            <button onclick="testAudioEvent('ui_hover')">Test UI Hover</button>
+            <button onclick="testAudioEvent('level_up')">Test Level Up</button>
+            <button onclick="testAudioEvent('xp_pickup')">Test XP Pickup</button>
+        </div>
+        <div class="audio-controls">
+            <button onclick="testAudioEvent('player_move')">Test Player Move</button>
+            <button onclick="testAudioEvent('player_attack')">Test Player Attack</button>
+            <button onclick="testAudioEvent('player_hurt')">Test Player Hurt</button>
+            <button onclick="testAudioEvent('player_death')">Test Player Death</button>
+        </div>
+        <div class="audio-controls">
+            <button onclick="testAudioEvent('fireball_launch')">Test Fireball Launch</button>
+            <button onclick="testAudioEvent('fireball_hit')">Test Fireball Hit</button>
+            <button onclick="testAudioEvent('beam_charge')">Test Beam Charge</button>
+            <button onclick="testAudioEvent('beam_fire')">Test Beam Fire</button>
+        </div>
+        <div class="audio-controls">
+            <button onclick="testAudioEvent('enemy_spawn')">Test Enemy Spawn</button>
+            <button onclick="testAudioEvent('enemy_hurt')">Test Enemy Hurt</button>
+            <button onclick="testAudioEvent('enemy_death')">Test Enemy Death</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🎵 Test Music</h2>
+        <div class="audio-controls">
+            <button onclick="testMusic('music_title')">Test Title Music</button>
+            <button onclick="testMusic('music_game')">Test Game Music</button>
+            <button onclick="testMusic('music_boss')">Test Boss Music</button>
+            <button onclick="stopMusic()">Stop Music</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔊 Volume Controls</h2>
+        <div class="volume-controls">
+            <label>Master Volume: <input type="range" id="masterVolume" min="0" max="1" step="0.1" value="1" onchange="setMasterVolume(this.value)"></label>
+            <span id="masterVolumeValue">1.0</span>
+        </div>
+        <div class="volume-controls">
+            <label>SFX Volume: <input type="range" id="sfxVolume" min="0" max="1" step="0.1" value="1" onchange="setSFXVolume(this.value)"></label>
+            <span id="sfxVolumeValue">1.0</span>
+        </div>
+        <div class="volume-controls">
+            <label>Music Volume: <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="0.5" onchange="setMusicVolume(this.value)"></label>
+            <span id="musicVolumeValue">0.5</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Audio Stats</h2>
+        <div id="audioStats">Loading...</div>
+        <button onclick="updateStats()">Refresh Stats</button>
+    </div>
+
+    <div id="status" class="status">Loading audio system...</div>
+
+    <script type="module">
+        // Import the audio system
+        import { AudioManager } from './src/audio/AudioManager.js';
+        import { EventBusImpl } from './src/events/EventBus.js';
+
+        let audioManager;
+        let eventBus;
+
+        async function initAudio() {
+            try {
+                eventBus = new EventBusImpl();
+                audioManager = new AudioManager(eventBus);
+                await audioManager.initialize();
+                
+                document.getElementById('status').textContent = 'Audio system ready! Click the buttons above to test sounds.';
+                updateStats();
+            } catch (error) {
+                document.getElementById('status').textContent = `Error initializing audio: ${error.message}`;
+                console.error('Audio initialization error:', error);
+            }
+        }
+
+        // Make functions globally available
+        window.testAudioEvent = function(soundId) {
+            if (audioManager) {
+                audioManager.playSound(soundId);
+                document.getElementById('status').textContent = `Playing sound: ${soundId}`;
+            }
+        };
+
+        window.testMusic = function(musicId) {
+            if (audioManager) {
+                audioManager.playMusic(musicId);
+                document.getElementById('status').textContent = `Playing music: ${musicId}`;
+            }
+        };
+
+        window.stopMusic = function() {
+            if (audioManager) {
+                audioManager.stopMusic();
+                document.getElementById('status').textContent = 'Music stopped';
+            }
+        };
+
+        window.setMasterVolume = function(volume) {
+            if (audioManager) {
+                audioManager.setMasterVolume(parseFloat(volume));
+                document.getElementById('masterVolumeValue').textContent = volume;
+            }
+        };
+
+        window.setSFXVolume = function(volume) {
+            if (audioManager) {
+                audioManager.setSFXVolume(parseFloat(volume));
+                document.getElementById('sfxVolumeValue').textContent = volume;
+            }
+        };
+
+        window.setMusicVolume = function(volume) {
+            if (audioManager) {
+                audioManager.setMusicVolume(parseFloat(volume));
+                document.getElementById('musicVolumeValue').textContent = volume;
+            }
+        };
+
+        window.updateStats = function() {
+            if (audioManager) {
+                const metrics = audioManager.getPerformanceMetrics();
+                const config = audioManager.getConfig();
+                
+                document.getElementById('audioStats').innerHTML = `
+                    <p><strong>Sounds Cached:</strong> ${metrics.soundsCached}</p>
+                    <p><strong>Sounds Played:</strong> ${metrics.soundsPlayed}</p>
+                    <p><strong>Active Sounds:</strong> ${metrics.activeSounds}</p>
+                    <p><strong>Master Volume:</strong> ${config.masterVolume}</p>
+                    <p><strong>SFX Volume:</strong> ${config.sfxVolume}</p>
+                    <p><strong>Music Volume:</strong> ${config.musicVolume}</p>
+                    <p><strong>Spatial Audio:</strong> ${config.spatialAudio ? 'Enabled' : 'Disabled'}</p>
+                `;
+            }
+        };
+
+        // Initialize when page loads
+        initAudio();
+    </script>
+</body>
+</html> 

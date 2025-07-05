@@ -24,6 +24,7 @@ import {
   CameraEventFactory,
   CAMERA_EVENT_TYPES,
 } from '../../events/CameraEvents';
+import { Container } from 'pixi.js';
 
 /**
  * ECS CameraSystem - Handles camera logic, following, shake, and viewport management
@@ -40,7 +41,7 @@ export class CameraSystem implements System {
   private activeCameraComponent: CameraComponent | null = null;
 
   // PIXI.js container for camera transform (optional - can be set externally)
-  private renderContainer: any = null;
+  private renderContainer: Container | null = null;
 
   // Performance tracking
   private lastUpdateTime = 0;
@@ -91,7 +92,7 @@ export class CameraSystem implements System {
   }
 
   // Public API methods
-  public setRenderContainer(container: any): void {
+  public setRenderContainer(container: Container): void {
     this.renderContainer = container;
     console.log('🎥 Camera render container set');
   }

@@ -1,5 +1,5 @@
 import { Graphics, Sprite, Container } from 'pixi.js';
-import { Collidable, CollisionGroup } from '../core/CollisionManager';
+import { Collidable, CollisionGroup } from '../types/CollisionTypes';
 import { GemSpriteManager } from '../core/GemSpriteManager';
 
 // Interface for player objects that ExperienceOrb needs

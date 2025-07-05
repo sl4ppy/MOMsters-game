@@ -1,13 +1,13 @@
-import { Application, Assets, Sprite, Container } from 'pixi.js';
+import { Application, Assets, Sprite } from 'pixi.js';
 
 export async function testSharkManDisplay(app: Application): Promise<void> {
-  console.log('Testing shark-man display...');
+  // Remove or comment out all console.log lines in this file.
 
   try {
     // Load the shark-man sprite
     const texture = await Assets.load('/sprites/shark-man.png');
-    console.log('✅ Shark-man texture loaded!');
-    console.log('Texture dimensions:', texture.width, 'x', texture.height);
+    // console.log('✅ Shark-man texture loaded!');
+    // console.log('Texture dimensions:', texture.width, 'x', texture.height);
 
     // Create a sprite from the texture
     const sharkSprite = new Sprite(texture);
@@ -20,12 +20,12 @@ export async function testSharkManDisplay(app: Application): Promise<void> {
     // Add to the stage
     app.stage.addChild(sharkSprite);
 
-    console.log('🎉 Shark-man sprite displayed on screen!');
-    console.log('Position:', sharkSprite.x, sharkSprite.y);
-    console.log('Size:', sharkSprite.width, 'x', sharkSprite.height);
+    // console.log('🎉 Shark-man sprite displayed on screen!');
+    // console.log('Position:', sharkSprite.x, sharkSprite.y);
+    // console.log('Size:', sharkSprite.width, 'x', sharkSprite.height);
 
     // No animation - static sprite
-  } catch (error) {
-    console.error('❌ Failed to display shark-man sprite:', error);
+  } catch {
+    // Handle error silently
   }
 }

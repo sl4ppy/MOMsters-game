@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOMsters Audio Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .audio-controls {
+            margin: 10px 0;
+        }
+        .download-link {
+            color: #4CAF50;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .download-link:hover {
+            text-decoration: underline;
+        }
+        .status {
+            color: #ff9800;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 MOMsters Audio Generator</h1>
+    <p>This tool generates test audio files for the MOMsters game. Click the buttons below to generate and download audio files.</p>
+
+    <div class="container">
+        <h2>🎮 UI Sounds</h2>
+        <div class="audio-controls">
+            <button onclick="generateSound('ui_click', 800, 0.1)">Generate UI Click</button>
+            <button onclick="generateSound('ui_hover', 600, 0.1)">Generate UI Hover</button>
+            <button onclick="generateSound('level_up', 1200, 0.3)">Generate Level Up</button>
+            <button onclick="generateSound('xp_pickup', 1000, 0.2)">Generate XP Pickup</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>⚔️ Player Sounds</h2>
+        <div class="audio-controls">
+            <button onclick="generateSound('player_move', 400, 0.1)">Generate Player Move</button>
+            <button onclick="generateSound('player_attack', 500, 0.2)">Generate Player Attack</button>
+            <button onclick="generateSound('player_hurt', 300, 0.3)">Generate Player Hurt</button>
+            <button onclick="generateSound('player_death', 200, 0.5)">Generate Player Death</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔥 Weapon Sounds</h2>
+        <div class="audio-controls">
+            <button onclick="generateSound('fireball_launch', 600, 0.2)">Generate Fireball Launch</button>
+            <button onclick="generateSound('fireball_hit', 400, 0.3)">Generate Fireball Hit</button>
+            <button onclick="generateSound('beam_charge', 800, 0.4)">Generate Beam Charge</button>
+            <button onclick="generateSound('beam_fire', 700, 0.3)">Generate Beam Fire</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>👹 Enemy Sounds</h2>
+        <div class="audio-controls">
+            <button onclick="generateSound('enemy_spawn', 500, 0.2)">Generate Enemy Spawn</button>
+            <button onclick="generateSound('enemy_hurt', 400, 0.2)">Generate Enemy Hurt</button>
+            <button onclick="generateSound('enemy_death', 300, 0.3)">Generate Enemy Death</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🎵 Music Tracks</h2>
+        <div class="audio-controls">
+            <button onclick="generateMusic('music_title', 5)">Generate Title Music</button>
+            <button onclick="generateMusic('music_game', 10)">Generate Game Music</button>
+            <button onclick="generateMusic('music_boss', 8)">Generate Boss Music</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📋 Instructions</h2>
+        <ol>
+            <li>Click the buttons above to generate test audio files</li>
+            <li>Download the generated files</li>
+            <li>Place them in the correct directories:
+                <ul>
+                    <li><strong>SFX files:</strong> <code>public/audio/sfx/</code></li>
+                    <li><strong>Music files:</strong> <code>public/audio/music/</code></li>
+                </ul>
+            </li>
+            <li>Restart the dev server and test the game</li>
+        </ol>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <script>
+        function setStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function generateSound(filename, frequency, duration) {
+            setStatus(`Generating ${filename}...`);
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            // Generate a simple sine wave
+            for (let i = 0; i < length; i++) {
+                data[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3;
+            }
+            
+            // Add fade in/out
+            const fadeLength = Math.floor(sampleRate * 0.01); // 10ms fade
+            for (let i = 0; i < fadeLength; i++) {
+                data[i] *= i / fadeLength;
+                data[length - 1 - i] *= i / fadeLength;
+            }
+            
+            // Convert to WAV
+            const wavBuffer = audioBufferToWav(buffer);
+            const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.wav`;
+            a.textContent = `Download ${filename}.wav`;
+            a.className = 'download-link';
+            
+            // Add to page
+            const button = event.target;
+            button.parentNode.appendChild(a);
+            
+            setStatus(`Generated ${filename}.wav - Click the download link!`);
+        }
+
+        function generateMusic(filename, duration) {
+            setStatus(`Generating ${filename}...`);
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(2, length, sampleRate); // Stereo
+            
+            // Generate a more complex musical pattern
+            for (let channel = 0; channel < 2; channel++) {
+                const data = buffer.getChannelData(channel);
+                const baseFreq = 220; // A3
+                
+                for (let i = 0; i < length; i++) {
+                    const time = i / sampleRate;
+                    const note = Math.floor(time * 2) % 8; // Change note every 0.5 seconds
+                    const frequencies = [220, 246.94, 277.18, 293.66, 329.63, 369.99, 415.30, 440]; // A major scale
+                    const freq = frequencies[note];
+                    
+                    data[i] = Math.sin(2 * Math.PI * freq * time) * 0.2;
+                    
+                    // Add some harmonics
+                    data[i] += Math.sin(2 * Math.PI * freq * 2 * time) * 0.1;
+                    data[i] += Math.sin(2 * Math.PI * freq * 3 * time) * 0.05;
+                }
+            }
+            
+            // Convert to MP3 (simplified - actually creates WAV)
+            const wavBuffer = audioBufferToWav(buffer);
+            const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.wav`; // Save as WAV for now
+            a.textContent = `Download ${filename}.wav`;
+            a.className = 'download-link';
+            
+            // Add to page
+            const button = event.target;
+            button.parentNode.appendChild(a);
+            
+            setStatus(`Generated ${filename}.wav - Click the download link!`);
+        }
+
+        function audioBufferToWav(buffer) {
+            const length = buffer.length;
+            const numberOfChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * numberOfChannels * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numberOfChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numberOfChannels * 2, true);
+            view.setUint16(32, numberOfChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, length * numberOfChannels * 2, true);
+            
+            // Write audio data
+            let offset = 44;
+            for (let i = 0; i < length; i++) {
+                for (let channel = 0; channel < numberOfChannels; channel++) {
+                    const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+            
+            return arrayBuffer;
+        }
+
+        setStatus('Ready to generate audio files!');
+    </script>
+</body>
+</html> 

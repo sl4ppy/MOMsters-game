@@ -1,20 +1,4 @@
-import { Graphics, Sprite, DisplayObject } from 'pixi.js';
-
-// Collision groups for different entity types
-export enum CollisionGroup {
-  PLAYER = 'player',
-  ENEMY = 'enemy',
-  PROJECTILE = 'projectile',
-  PICKUP = 'pickup',
-}
-
-// Interface for objects that can collide
-export interface Collidable {
-  sprite: DisplayObject;
-  collisionRadius: number;
-  collisionGroup: CollisionGroup;
-  onCollision?: (other: Collidable) => void;
-}
+import { CollisionGroup, Collidable } from '../types/CollisionTypes';
 
 // Collision pair - defines what can collide with what
 interface CollisionPair {
@@ -22,6 +6,9 @@ interface CollisionPair {
   groupB: CollisionGroup;
   callback?: (entityA: Collidable, entityB: Collidable) => void;
 }
+
+export { CollisionGroup };
+export type { Collidable };
 
 export class CollisionManager {
   private entities: Collidable[] = [];

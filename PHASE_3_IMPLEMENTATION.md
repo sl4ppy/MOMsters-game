@@ -973,6 +973,13 @@ export class Slider {
 
 ---
 
+## 🔊 Audio System - Final Notes
+- **Audio is now muted by default** for new users and on reset
+- Unmute with the HUD speaker button or 'M' key
+- All SFX and music are event-driven and can be tested via gameplay and settings
+
+---
+
 ## 🚀 Commands to Execute Phase 3
 
 ```bash

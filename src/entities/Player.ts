@@ -1,7 +1,9 @@
 import { Graphics, Sprite, DisplayObject } from 'pixi.js';
+import { Collidable, CollisionGroup } from '../types/CollisionTypes';
 import { InputManager } from '../core/InputManager';
-import { Collidable, CollisionGroup } from '../core/CollisionManager';
 import { SpriteManager } from '../core/SpriteManager';
+import { Entity } from '../types/EntityTypes';
+import { Enemy } from '../entities/Enemy';
 
 export class Player implements Collidable {
   public sprite: DisplayObject;
@@ -48,7 +50,7 @@ export class Player implements Collidable {
   }
 
   async init(): Promise<void> {
-    console.log('Player initialized');
+    // console.log('Player initialized');
     await this.loadSharkManSprite();
   }
 
@@ -60,9 +62,9 @@ export class Player implements Collidable {
       this.sharkManSprite.width = 64;
       this.sharkManSprite.height = 64;
       this.sharkManSprite.anchor.set(0.5, 0.5);
-      console.log('✅ Shark-man sprite loaded for player!');
-    } catch (error) {
-      console.warn('⚠️ Failed to load shark-man sprite:', error);
+      // console.log('✅ Shark-man sprite loaded for player!');
+    } catch {
+      // Handle error silently
     }
   }
 
@@ -242,8 +244,13 @@ export class Player implements Collidable {
       this.invulnerabilityTimer -= deltaTime;
     }
 
-    // Update health regeneration
-    this.updateHealthRegeneration(deltaTime);
+    // Update regeneration
+    if (this.health < this.maxHealth) {
+      this.health += this.healthRegenRate * deltaTime;
+      if (this.health > this.maxHealth) {
+        this.health = this.maxHealth;
+      }
+    }
 
     // Update visual appearance based on health and invulnerability
     this.updateAppearance();
@@ -253,13 +260,13 @@ export class Player implements Collidable {
 
     // Debug: Switch character design with keyboard shortcuts
     if (inputManager.isKeyJustPressed('KeyC')) {
-      console.log('Switching to circle design...');
+      // console.log('Switching to circle design...');
       this.switchCharacterDesign('circle');
     } else if (inputManager.isKeyJustPressed('KeyH')) {
-      console.log('Switching to hexagon design...');
+      // console.log('Switching to hexagon design...');
       this.switchCharacterDesign('hexagon');
     } else if (inputManager.isKeyJustPressed('KeyS')) {
-      console.log('Switching to shark-man design...');
+      // console.log('Switching to shark-man design...');
       this.switchCharacterDesign('shark_man');
     }
 
@@ -310,30 +317,10 @@ export class Player implements Collidable {
   /**
    * Handle collision with other entities
    */
-  onCollision(other: Collidable): void {
-    switch (other.collisionGroup) {
-      case CollisionGroup.ENEMY:
-        // Only take damage if not invulnerable
-        if (this.invulnerabilityTimer <= 0) {
-          const enemy = other as any; // Cast to access enemy properties
-          const damage = enemy.attackDamage || 10; // Default damage if not specified
-
-          if (this.takeDamage(damage)) {
-            console.log('Player died!');
-            if (this.onPlayerDied) this.onPlayerDied();
-          } else {
-            console.log(`Player took ${damage} damage! Health: ${this.health}/${this.maxHealth}`);
-            if (this.onDamageTaken) this.onDamageTaken(damage);
-          }
-
-          // Start invulnerability frames
-          this.invulnerabilityTimer = this.invulnerabilityDuration;
-        }
-        break;
-      case CollisionGroup.PICKUP:
-        // Collect pickup (will implement pickup system later)
-        console.log('Player collected pickup!');
-        break;
+  public onCollision(other: Entity): void {
+    if (other instanceof Enemy) {
+      const enemy = other as Enemy; // Cast to access enemy properties
+      this.takeDamage(enemy.damage);
     }
   }
 
@@ -351,9 +338,9 @@ export class Player implements Collidable {
 
       // Log regeneration every 2 seconds to avoid spam
       if (Math.floor(this.timeSinceLastDamage) % 2 === 0 && this.health > oldHealth) {
-        console.log(
-          `Health regenerating: ${oldHealth} -> ${this.health} (rate: ${this.healthRegenRate.toFixed(2)} HP/sec, time since damage: ${this.timeSinceLastDamage.toFixed(1)}s)`
-        );
+        // console.log(
+        //   `Health regenerating: ${oldHealth} -> ${this.health} (rate: ${this.healthRegenRate.toFixed(2)} HP/sec, time since damage: ${this.timeSinceLastDamage.toFixed(1)}s)`
+        // );
       }
     }
   }
@@ -413,13 +400,12 @@ export class Player implements Collidable {
       this.health = Math.min(this.health + healthBonus * 0.5, this.maxHealth);
     }
 
-    const oldRegenRate = this.healthRegenRate;
     this.healthRegenRate = this.baseRegenRate + regenBonus;
 
     if (regenBonus > 0) {
-      console.log(
-        `Health regen upgraded: ${oldRegenRate.toFixed(2)} -> ${this.healthRegenRate.toFixed(2)} HP/sec`
-      );
+      // console.log(
+      //   `Health regen upgraded: ${oldRegenRate.toFixed(2)} -> ${this.healthRegenRate.toFixed(2)} HP/sec`
+      // );
     }
   }
 
@@ -442,11 +428,11 @@ export class Player implements Collidable {
       if (this.sharkManSprite) {
         // Use the loaded shark-man sprite
         this.sprite = this.sharkManSprite;
-        console.log('🎉 Using shark-man bitmap sprite!');
+        // console.log('🎉 Using shark-man bitmap sprite!');
       } else {
         // Fallback to graphics
         this.createSharkManCharacter();
-        console.log('⚠️ Using shark-man graphics fallback');
+        // console.log('⚠️ Using shark-man graphics fallback');
       }
     }
   }
@@ -469,5 +455,10 @@ export class Player implements Collidable {
   }
   get healthPercent(): number {
     return this.health / this.maxHealth;
+  }
+
+  public setHealthRegenRate(newRate: number): void {
+    this.healthRegenRate = newRate;
+    this.eventBus.emit('player:regenRateChanged', { playerId: this.id, newRate });
   }
 }

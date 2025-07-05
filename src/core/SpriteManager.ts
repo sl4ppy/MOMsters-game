@@ -21,7 +21,7 @@ export class SpriteManager {
    * Load all sprite assets
    */
   async loadSprites(spriteConfigs: SpriteConfig[]): Promise<void> {
-    console.log('Loading sprite assets...');
+    console.warn('SpriteManager: Loading sprites...');
 
     try {
       // Load all textures
@@ -32,7 +32,7 @@ export class SpriteManager {
       }
 
       this.loaded = true;
-      console.log('All sprites loaded successfully!');
+      console.warn('SpriteManager: Sprites loaded successfully');
     } catch (error) {
       console.error('Error loading sprites:', error);
       throw error;

@@ -44,7 +44,7 @@ export class EventBusImpl implements EventBus {
 
   // Unsubscribe from events
   public off<T extends GameEvent>(eventType: string, listener: EventListener<T>): void {
-    const operation = () => {
+    const operation = (): void => {
       const eventListeners = this.listeners.get(eventType);
       if (!eventListeners) return;
 
@@ -167,7 +167,7 @@ export class EventBusImpl implements EventBus {
 
   // Clear all listeners for an event type
   public clearListeners(eventType: string): void {
-    const operation = () => {
+    const operation = (): void => {
       this.listeners.delete(eventType);
     };
 
@@ -180,7 +180,7 @@ export class EventBusImpl implements EventBus {
 
   // Clear all listeners
   public clearAllListeners(): void {
-    const operation = () => {
+    const operation = (): void => {
       this.listeners.clear();
     };
 
@@ -252,7 +252,7 @@ export class EventBusImpl implements EventBus {
     priority: EventPriority,
     once: boolean
   ): EventSubscription {
-    const operation = () => {
+    const operation = (): void => {
       if (!this.listeners.has(eventType)) {
         this.listeners.set(eventType, []);
       }

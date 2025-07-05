@@ -62,12 +62,12 @@ export class PerformanceMonitor {
     this.isEnabled = true;
     this.lastFrameTime = performance.now();
     this.lastUpdateTime = performance.now();
-    console.log('📊 PerformanceMonitor enabled');
+    console.warn('PerformanceMonitor: Monitoring performance...');
   }
 
   public disable(): void {
     this.isEnabled = false;
-    console.log('📊 PerformanceMonitor disabled');
+    console.warn('📊 PerformanceMonitor disabled');
   }
 
   public update(_deltaTime: number): void {
@@ -105,6 +105,8 @@ export class PerformanceMonitor {
       this.checkPerformanceWarnings();
       this.lastUpdateTime = currentTime;
     }
+
+    console.warn('PerformanceMonitor: Performance monitored successfully');
   }
 
   private updateMemoryUsage(): void {

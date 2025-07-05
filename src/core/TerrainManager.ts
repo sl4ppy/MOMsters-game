@@ -97,15 +97,15 @@ export class TerrainManager {
 
   private async loadTerrainSheet(): Promise<void> {
     try {
-      console.log('🔄 Loading terrain sprite sheet...');
+      console.warn('TerrainManager: Loading terrain...');
       this.terrainTexture = await Assets.load(
         import.meta.env.BASE_URL + 'sprites/terrain2_10x2.png'
       );
-      console.log('✅ Terrain sprite sheet loaded successfully!');
-      console.log(
+      console.warn('TerrainManager: Terrain loaded successfully');
+      console.warn(
         `📊 Sheet contains ${this.totalTiles} tiles (${this.tilesPerRow}x${this.tilesPerColumn})`
       );
-      console.log(
+      console.warn(
         '🔍 Terrain texture dimensions:',
         this.terrainTexture.width,
         'x',
@@ -116,19 +116,19 @@ export class TerrainManager {
       const actualTileWidth = Math.floor(this.terrainTexture.width / this.tilesPerRow);
       const actualTileHeight = Math.floor(this.terrainTexture.height / this.tilesPerColumn);
 
-      console.log('🔍 Calculated tile size:', actualTileWidth, 'x', actualTileHeight);
+      console.warn('🔍 Calculated tile size:', actualTileWidth, 'x', actualTileHeight);
 
       // Update tile size if different from expected
       if (actualTileWidth !== this.actualTileSize || actualTileHeight !== this.actualTileSize) {
-        console.log(
+        console.warn(
           `⚠️ Tile size mismatch! Expected ${this.actualTileSize}x${this.actualTileSize}, got ${actualTileWidth}x${actualTileHeight}`
         );
-        console.log(
+        console.warn(
           `📏 Texture tiles are ${actualTileWidth}x${actualTileHeight}, will be scaled to ${this.tileSize}x${this.tileSize} for rendering`
         );
         // Update the actual tile size to match what we found
         this.actualTileSize = Math.min(actualTileWidth, actualTileHeight);
-        console.log(
+        console.warn(
           `✅ Tiles will render at ${this.tileSize}x${this.tileSize} (scaled from ${this.actualTileSize}x${this.actualTileSize})`
         );
       }
@@ -140,15 +140,15 @@ export class TerrainManager {
 
   private async loadDecorationSheet(): Promise<void> {
     try {
-      console.log('🔄 Loading decoration sprite sheet...');
+      console.warn('🔄 Loading decoration sprite sheet...');
       this.decorationTexture = await Assets.load(
         import.meta.env.BASE_URL + 'sprites/terrain_decoration-10x6.png'
       );
-      console.log('✅ Decoration sprite sheet loaded successfully!');
-      console.log(
+      console.warn('✅ Decoration sprite sheet loaded successfully!');
+      console.warn(
         `📊 Sheet contains ${this.totalDecorationTiles} decoration tiles (${this.decorationTilesPerRow}x${this.decorationTilesPerColumn})`
       );
-      console.log(
+      console.warn(
         '🔍 Decoration texture dimensions:',
         this.decorationTexture.width,
         'x',
@@ -636,8 +636,7 @@ export class TerrainManager {
     for (let y = 0; y < height; y++) {
       tileTypeMap[y] = [];
       for (let x = 0; x < width; x++) {
-        const biome = biomeMap[y][x];
-        tileTypeMap[y][x] = this.selectTileTypeForBiome(biome, biomes);
+        tileTypeMap[y][x] = this.selectTileTypeForBiome(biomeMap[y][x], biomes);
       }
     }
 
@@ -649,7 +648,6 @@ export class TerrainManager {
       for (let y = 0; y < height; y++) {
         newMap[y] = [];
         for (let x = 0; x < width; x++) {
-          const biome = biomeMap[y][x];
           const neighbors = this.getNeighborTileTypes(tileTypeMap, x, y, width, height, biomeMap);
           const mostCommonTileType = this.getMostCommonTileType(neighbors);
 
@@ -672,7 +670,6 @@ export class TerrainManager {
       for (let y = 0; y < height; y++) {
         newMap[y] = [];
         for (let x = 0; x < width; x++) {
-          const biome = biomeMap[y][x];
           const neighbors = this.getNeighborTileTypes(tileTypeMap, x, y, width, height, biomeMap);
           const mostCommonTileType = this.getMostCommonTileType(neighbors);
 
@@ -703,7 +700,6 @@ export class TerrainManager {
     biomeMap: BiomeType[][]
   ): number[] {
     const neighbors: number[] = [];
-    const currentBiome = biomeMap[y][x];
 
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
@@ -714,7 +710,7 @@ export class TerrainManager {
 
         if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
           // Only consider neighbors from the same biome
-          if (biomeMap[ny][nx].name === currentBiome.name) {
+          if (biomeMap[ny][nx].name === biomeMap[y][x].name) {
             neighbors.push(tileTypeMap[ny][nx]);
           }
         }
@@ -752,7 +748,7 @@ export class TerrainManager {
   /**
    * Select a tile type based on biome weights for visual variety
    */
-  private selectTileTypeForBiome(biome: BiomeType, allBiomes: BiomeType[]): number {
+  private selectTileTypeForBiome(biome: BiomeType, _allBiomes: BiomeType[]): number {
     const totalWeight = biome.tileWeights.reduce((sum, weight) => sum + weight, 0);
     let random = Math.random() * totalWeight;
 
@@ -809,7 +805,13 @@ export class TerrainManager {
   /**
    * Get information about the terrain sheet
    */
-  getTerrainInfo() {
+  getTerrainInfo(): {
+    tileSize: number;
+    tilesPerRow: number;
+    tilesPerColumn: number;
+    totalTiles: number;
+    isLoaded: boolean;
+  } {
     return {
       tileSize: this.tileSize,
       tilesPerRow: this.tilesPerRow,

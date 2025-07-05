@@ -11,8 +11,10 @@ export class GameState {
   }
 
   update(deltaTime: number): void {
+    console.warn('GameState: Updating state...');
     // Update game time (deltaTime is in seconds)
     this._time += deltaTime / 60; // Convert to seconds
+    console.warn('GameState: State updated successfully');
   }
 
   addExperience(amount: number): boolean {

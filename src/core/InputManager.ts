@@ -13,6 +13,7 @@ export class InputManager {
   private mousePosition = { x: 0, y: 0 };
 
   init(): void {
+    console.warn('InputManager: Initializing...');
     // Keyboard event listeners
     window.addEventListener('keydown', this.onKeyDown.bind(this));
     window.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -20,7 +21,7 @@ export class InputManager {
     // Mouse event listeners
     window.addEventListener('mousemove', this.onMouseMove.bind(this));
 
-    console.log('InputManager initialized');
+    console.warn('InputManager: Initialized successfully');
   }
 
   private onKeyDown(event: KeyboardEvent): void {

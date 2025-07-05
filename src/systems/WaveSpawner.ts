@@ -254,13 +254,13 @@ export class WaveSpawner {
     this.initializeEnemyMapping();
     this.updateCurrentWave();
 
-    console.log(`🌊 WaveSpawner initialized with ${this.waveConfigs.length} waves`);
-    console.log(
-      `🎯 Initial wave: ${this.currentWave ? this.currentWave.enemies.join(', ') : 'None'}`
+    console.warn('WaveSpawner: WaveSpawner initialized with ' + this.waveConfigs.length + ' waves');
+    console.warn(
+      'WaveSpawner: Initial wave: ' + (this.currentWave ? this.currentWave.enemies.join(', ') : 'None')
     );
-    console.log(`🎯 Game time: ${this.gameTime.toFixed(3)} minutes`);
-    console.log(
-      `🎯 Current wave index: ${this.currentWaveIndex}, Wave: ${this.currentWave ? `${this.currentWave.start_time}-${this.currentWave.end_time}min, spawn_rate: ${this.currentWave.spawn_rate}/s` : 'None'}`
+    console.warn('WaveSpawner: Game time: ' + this.gameTime.toFixed(3) + ' minutes');
+    console.warn(
+      'WaveSpawner: Current wave index: ' + this.currentWaveIndex + ', Wave: ' + (this.currentWave ? `${this.currentWave.start_time}-${this.currentWave.end_time}min, spawn_rate: ${this.currentWave.spawn_rate}/s` : 'None')
     );
   }
 
@@ -324,11 +324,11 @@ export class WaveSpawner {
 
     // Debug time calculation more frequently during first few minutes
     if (this.gameTime < 5.0 && Math.floor(this.gameTime * 20) > Math.floor(previousGameTime * 20)) {
-      console.log(
-        `⏰ Game time: ${this.gameTime.toFixed(3)} minutes (deltaTime: ${deltaTime.toFixed(1)}ms) - Real time passed: ${(this.gameTime * 60).toFixed(1)}s`
+      console.warn(
+        'WaveSpawner: Game time: ' + this.gameTime.toFixed(3) + ' minutes (deltaTime: ' + deltaTime.toFixed(1) + 'ms) - Real time passed: ' + (this.gameTime * 60).toFixed(1) + 's'
       );
-      console.log(
-        `⏰ Current wave should be: ${this.getCurrentExpectedWaveIndex()} (${this.getExpectedWaveName()})`
+      console.warn(
+        'WaveSpawner: Current wave should be: ' + this.getCurrentExpectedWaveIndex() + ' (' + this.getExpectedWaveName() + ')'
       );
     }
 
@@ -381,9 +381,9 @@ export class WaveSpawner {
 
     // Debug: Log only when no current wave is found (should not happen)
     if (!this.currentWave) {
-      console.log(`⚠️ No current wave found for time ${this.gameTime.toFixed(3)} min`);
-      console.log(
-        `⚠️ gameTime: ${this.gameTime}, previousWave: ${previousWave ? `${previousWave.start_time}-${previousWave.end_time}` : 'null'}`
+      console.warn('WaveSpawner: No current wave found for time ' + this.gameTime.toFixed(3) + ' min');
+      console.warn(
+        'WaveSpawner: gameTime: ' + this.gameTime + ', previousWave: ' + (previousWave ? `${previousWave.start_time}-${previousWave.end_time}` : 'null')
       );
     }
 
@@ -391,12 +391,12 @@ export class WaveSpawner {
     if (previousWaveIndex !== this.currentWaveIndex && this.currentWave) {
       this.onWaveChanged?.(this.currentWaveIndex, this.currentWave);
       this.resetEventState();
-      console.log(`🌊 WAVE CHANGED! From ${previousWaveIndex} to ${this.currentWaveIndex}`);
-      console.log(
-        `🌊 Wave ${this.currentWaveIndex + 1}: ${this.currentWave.enemies.join(', ')} (${this.currentWave.event}) - spawn_rate: ${this.currentWave.spawn_rate}/s, max: ${this.currentWave.max_count}`
+      console.warn('WaveSpawner: WAVE CHANGED! From ' + previousWaveIndex + ' to ' + this.currentWaveIndex);
+      console.warn(
+        'WaveSpawner: Wave ' + (this.currentWaveIndex + 1) + ': ' + this.currentWave.enemies.join(', ') + ' (' + this.currentWave.event + ') - spawn_rate: ' + this.currentWave.spawn_rate + '/s, max: ' + this.currentWave.max_count
       );
-      console.log(
-        `🌊 Time range: ${this.currentWave.start_time}-${this.currentWave.end_time} minutes, Current time: ${this.gameTime.toFixed(3)} minutes`
+      console.warn(
+        'WaveSpawner: Time range: ' + this.currentWave.start_time + '-' + this.currentWave.end_time + ' minutes, Current time: ' + this.gameTime.toFixed(3) + ' minutes'
       );
     }
 
@@ -405,8 +405,8 @@ export class WaveSpawner {
       // Log every 0.5 minutes during the first 5 minutes
       const halfMinuteMarker = Math.floor(this.gameTime * 2);
       if (halfMinuteMarker !== Math.floor((this.gameTime - 0.001) * 2)) {
-        console.log(
-          `🎯 Wave Status: gameTime=${this.gameTime.toFixed(3)}min, currentWaveIndex=${this.currentWaveIndex}, currentWave=${this.currentWave.enemies.join(',')}`
+        console.warn(
+          'WaveSpawner: Wave Status: gameTime=' + this.gameTime.toFixed(3) + 'min, currentWaveIndex=' + this.currentWaveIndex + ', currentWave=' + this.currentWave.enemies.join(',')
         );
       }
     }
@@ -460,7 +460,7 @@ export class WaveSpawner {
   /**
    * Update boss event
    */
-  private updateBossEvent(deltaTimeSeconds: number): void {
+  private updateBossEvent(_deltaTimeSeconds: number): void {
     // Boss events typically spawn only once per wave
     if (this.bossSpawned) return;
 
@@ -520,7 +520,7 @@ export class WaveSpawner {
    */
   private updateSpawning(deltaTime: number): void {
     if (!this.currentWave) {
-      console.log(`❌ updateSpawning early return: no currentWave`);
+      console.warn('WaveSpawner: updateSpawning early return: no currentWave');
       return;
     }
 
@@ -530,8 +530,8 @@ export class WaveSpawner {
     if (aliveEnemyCount >= this.currentWave.max_count) {
       // Only log occasionally to avoid spam
       if (aliveEnemyCount % 10 === 0) {
-        console.log(
-          `❌ updateSpawning early return: alive enemies=${aliveEnemyCount} >= max_count=${this.currentWave.max_count} (total in array: ${this.enemies.length})`
+        console.warn(
+          'WaveSpawner: updateSpawning early return: alive enemies=' + aliveEnemyCount + ' >= max_count=' + this.currentWave.max_count + ' (total in array: ' + this.enemies.length + ')'
         );
       }
       return;
@@ -542,7 +542,7 @@ export class WaveSpawner {
       this.currentWave.event === FormationType.SWARM ||
       this.currentWave.event === FormationType.FINAL_ASSAULT
     ) {
-      console.log(`❌ updateSpawning early return: special event ${this.currentWave.event}`);
+      console.warn('WaveSpawner: updateSpawning early return: special event ' + this.currentWave.event);
       return;
     }
 
@@ -556,8 +556,8 @@ export class WaveSpawner {
     if (this.timeSinceLastSpawn >= spawnInterval) {
       // Only log spawning occasionally to reduce spam
       if (aliveEnemyCount % 10 === 0 || aliveEnemyCount < 10) {
-        console.log(
-          `✅ Spawning enemy! Alive enemies: ${aliveEnemyCount}/${this.currentWave.max_count}, spawn_rate: ${this.currentWave.spawn_rate}/s`
+        console.warn(
+          'WaveSpawner: Spawning enemy! Alive enemies: ' + aliveEnemyCount + '/' + this.currentWave.max_count + ', spawn_rate: ' + this.currentWave.spawn_rate + '/s'
         );
       }
       this.spawnEnemy();
@@ -570,8 +570,8 @@ export class WaveSpawner {
    */
   private spawnEnemy(): void {
     if (!this.currentWave || this.currentWave.enemies.length === 0) {
-      console.log(
-        `⚠️ Cannot spawn enemy: currentWave=${!!this.currentWave}, enemies=${this.currentWave?.enemies.length || 0}`
+      console.warn(
+        'WaveSpawner: Cannot spawn enemy: currentWave=' + !!this.currentWave + ', enemies=' + (this.currentWave?.enemies.length || 0)
       );
       return;
     }
@@ -582,11 +582,11 @@ export class WaveSpawner {
     const enemyType = this.enemyNameToType.get(enemyName);
 
     if (enemyType === undefined) {
-      console.warn(`Unknown enemy type: ${enemyName}`);
+      console.warn('WaveSpawner: Unknown enemy type: ' + enemyName);
       return;
     }
 
-    console.log(`🐺 Spawning enemy: ${enemyName} (type ${enemyType})`);
+    console.warn('WaveSpawner: Spawning enemy: ' + enemyName + ' (type ' + enemyType + ')');
 
     // Create enemy based on type
     let enemy: Enemy;
@@ -619,15 +619,15 @@ export class WaveSpawner {
 
     // Reduced logging - only log every 10th enemy
     if (this.enemies.length % 10 === 0) {
-      console.log(
-        `✅ Enemy added to world! ${enemyName} #${this.enemies.length} at (${enemy.sprite.x.toFixed(0)}, ${enemy.sprite.y.toFixed(0)})`
+      console.warn(
+        'WaveSpawner: Enemy added to world! ' + enemyName + ' #' + this.enemies.length + ' at (' + enemy.sprite.x.toFixed(0) + ', ' + enemy.sprite.y.toFixed(0) + ')'
       );
     }
 
     // Log spawning occasionally
     if (this.enemies.length % 20 === 0) {
-      console.log(
-        `Spawned ${enemyName} #${this.enemies.length} (Wave ${this.currentWaveIndex + 1})`
+      console.warn(
+        'WaveSpawner: Spawned ' + enemyName + ' #' + this.enemies.length + ' (Wave ' + (this.currentWaveIndex + 1) + ')'
       );
     }
   }
@@ -728,8 +728,8 @@ export class WaveSpawner {
 
     const removedCount = this.enemies.length - aliveEnemies.length;
     if (removedCount > 0) {
-      console.log(
-        `🧹 Cleaned up ${removedCount} dead enemies. Total alive: ${aliveEnemies.length}`
+      console.warn(
+        'WaveSpawner: Cleaned up ' + removedCount + ' dead enemies. Total alive: ' + aliveEnemies.length
       );
     }
 
@@ -843,7 +843,7 @@ export class WaveSpawner {
       spawnRate: this.currentWave?.spawn_rate || 0,
       difficulty: this.gameTime / 30,
       event: this.currentWave?.event || 'Normal',
-      timeRemaining: timeRemaining,
+      timeRemaining,
     };
   }
 

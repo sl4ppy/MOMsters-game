@@ -17,7 +17,7 @@ export interface AssetValidationResult {
 
 export class AssetManager {
   private static instance: AssetManager;
-  private loadedAssets: Map<string, any> = new Map();
+  private loadedAssets: Map<string, Texture | Spritesheet | unknown> = new Map();
   private loadedTextures: Map<string, Texture> = new Map();
   private loadedSpritesheets: Map<string, Spritesheet> = new Map();
   private onProgress?: (progress: LoadProgress) => void;
@@ -128,7 +128,7 @@ export class AssetManager {
     return spritesheet;
   }
 
-  public getAsset(name: string): any | null {
+  public getAsset(name: string): Texture | Spritesheet | unknown | null {
     const asset = this.loadedAssets.get(name);
     if (!asset) {
       console.warn(`⚠️ Asset not found: ${name}`);

@@ -261,11 +261,11 @@ export class LevelingSystem {
   /**
    * Select an upgrade when leveling up
    */
-  selectUpgrade(upgradeId: string, weaponSystem?: any): void {
+  selectUpgrade(upgradeId: string, weaponSystem?: WeaponSystem): void {
     const upgrade = this.allUpgrades.get(upgradeId);
     if (upgrade && upgrade.currentLevel < upgrade.maxLevel) {
       upgrade.currentLevel++;
-      console.log(`Upgraded ${upgrade.name} to level ${upgrade.currentLevel}`);
+      // console.log(`Upgraded ${upgrade.name} to level ${upgrade.currentLevel}`);
 
       // Handle weapon unlocks
       if (upgrade.effects.weaponUnlock && weaponSystem) {
@@ -273,7 +273,7 @@ export class LevelingSystem {
         weaponSystem.addWeapon(weaponType);
         // Set the weapon to level 1 when first unlocked
         weaponSystem.upgradeWeapon(weaponType);
-        console.log(`Unlocked weapon: ${weaponType}`);
+        // console.log(`Unlocked weapon: ${weaponType}`);
       }
     }
   }

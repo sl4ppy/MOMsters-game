@@ -8,7 +8,6 @@ import {
   HEALTH_COMPONENT,
   MOVEMENT_COMPONENT,
   SPRITE_COMPONENT,
-  COLLISION_COMPONENT,
   INPUT_COMPONENT,
   ANIMATION_COMPONENT,
   UPGRADE_COMPONENT,
@@ -17,17 +16,12 @@ import {
   HealthComponent,
   MovementComponent,
   SpriteComponent,
-  CollisionComponent,
   InputComponent,
   AnimationComponent,
   UpgradeComponent,
   PlayerEventComponent,
   getPlayerPosition,
   setPlayerPosition,
-  getHealthPercent,
-  isPlayerAlive,
-  applyHealthUpgrade,
-  applySpeedUpgrade,
 } from '../components/PlayerComponents';
 import {
   POSITION_COMPONENT,
@@ -40,7 +34,6 @@ import {
   PLAYER_EVENT_TYPES,
 } from '../../events/PlayerEvents';
 import { Graphics, Sprite, DisplayObject } from 'pixi.js';
-import { Assets } from 'pixi.js';
 
 /**
  * ECS PlayerSystem - Handles all player logic including movement, health, 
@@ -76,7 +69,7 @@ export class PlayerSystem implements System {
     this.preloadTextures();
   }
 
-  public update(deltaTime: number): void {
+  public update(_deltaTime: number): void {
     // Player update logic will be implemented here
   }
 
@@ -450,9 +443,10 @@ export class PlayerSystem implements System {
 
   private async loadTexture(name: string, path: string): Promise<void> {
     try {
-      const texture = await Assets.load(import.meta.env.BASE_URL + path);
+      // this.loadPlayerTexture(_textureName);
+      await Assets.load(import.meta.env.BASE_URL + path);
       this.loadedTextures.set(name, true);
-      console.log(`✅ Loaded texture: ${name}`);
+      console.warn(`✅ Loaded texture: ${name}`);
     } catch (error) {
       console.warn(`⚠️ Failed to load texture ${name}:`, error);
       this.loadedTextures.set(name, false);
@@ -492,7 +486,7 @@ export class PlayerSystem implements System {
     return sprite;
   }
 
-  private createBitmapSprite(textureName: string): Sprite {
+  private createBitmapSprite(_textureName: string): Sprite {
     // This would need the actual texture from Assets
     // For now, create a placeholder
     const sprite = new Sprite();
@@ -791,13 +785,8 @@ export class PlayerSystem implements System {
     }
   }
 
-  private updateVisualEffects(sprite: SpriteComponent, animation: AnimationComponent, deltaTime: number): void {
-    // Apply glow/pulse effect
-    const pulseValue = Math.sin(animation.animationTime * 0.01 * sprite.pulseRate) * 0.5 + 0.5;
-    const glowAlpha = sprite.glowIntensity * pulseValue;
-    
-    // Update sprite alpha for effects
-    sprite.displayObject.alpha = sprite.alpha;
+  private updateVisualEffects(_sprite: SpriteComponent, _animation: AnimationComponent, _deltaTime: number): void {
+    // TODO: Implement visual effects
   }
 
   private updateInvulnerability(deltaTime: number): void {
@@ -875,5 +864,15 @@ export class PlayerSystem implements System {
         )
       );
     }
+  }
+
+  private loadPlayerTexture(textureName: string): PIXI.Texture {
+    const texture = PIXI.Texture.from(textureName);
+    return texture;
+  }
+
+  private updatePlayerGlow(_deltaTime: number): void {
+    // const glowAlpha = 0.3 + Math.sin(Date.now() * 0.005) * 0.1;
+    // TODO: Implement glow effect
   }
 } 

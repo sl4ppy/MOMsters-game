@@ -1,9 +1,9 @@
-import { Graphics, Sprite, Container, Rectangle, Texture } from 'pixi.js';
-import { Collidable, CollisionGroup } from '../core/CollisionManager';
+import { Graphics, Sprite, Container, Rectangle, Texture, DisplayObject } from 'pixi.js';
+import { Collidable, CollisionGroup } from '../types/CollisionTypes';
 
 export class Projectile implements Collidable {
-  public sprite: Container;
-  public collisionRadius: number = 16;
+  public sprite: DisplayObject;
+  public collisionRadius: number = 8;
   public collisionGroup: CollisionGroup = CollisionGroup.PROJECTILE;
 
   private visualSprite: Sprite | Graphics | null = null;
@@ -74,6 +74,8 @@ export class Projectile implements Collidable {
 
     // Set initial rotation based on velocity direction
     this.updateRotation();
+
+    console.warn('Projectile: Creating projectile...');
   }
 
   private createSprite(): void {
@@ -96,6 +98,8 @@ export class Projectile implements Collidable {
         this.loadFireballSprite();
         break;
     }
+
+    console.warn('Projectile: Projectile created successfully');
   }
 
   private async loadFireballSprite(): Promise<void> {

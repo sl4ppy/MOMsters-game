@@ -5,12 +5,41 @@ export * from './interfaces';
 export { EventBusImpl } from './EventBus';
 import { EventBusImpl } from './EventBus';
 
-// Game event types and factory
-export * from './GameEvents';
+// Game event types and factory - specific exports to avoid conflicts
+export type { 
+  GameStartedEvent, 
+  GameOverEvent, 
+  GamePausedEvent, 
+  GameResumedEvent,
+  CollisionStartEvent,
+  CollisionEndEvent,
+  ExperienceGainedEvent,
+  UpgradeSelectedEvent,
+  WaveStartedEvent,
+  WaveCompletedEvent,
+  UIClickEvent,
+  UIHoverEvent,
+  UIToggleEvent,
+  AudioPlayEvent,
+  AudioStopEvent
+} from './GameEvents';
+
+export { GameEventFactory, EVENT_TYPES } from './GameEvents';
+
+// Input events
 export * from './InputEvents';
+
+// Camera events
 export * from './CameraEvents';
-// TODO: Resolve conflicts with GameEvents before enabling
-// export * from './PlayerEvents';
+
+// Player events - specialized version
+export * from './PlayerEvents';
+
+// Enemy events - specialized version
+export * from './EnemyEvents';
+
+// Weapon events - specialized version  
+export * from './WeaponEvents';
 
 // Re-export common types for convenience
 export type {

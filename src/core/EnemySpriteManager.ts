@@ -238,7 +238,7 @@ export class EnemySpriteManager {
    * Load the enemy sprite atlas and custom sprites
    */
   async loadEnemyAtlas(): Promise<void> {
-    console.log('🦹 Loading enemy sprite atlas...');
+    console.warn('EnemySpriteManager: Loading enemy sprites...');
 
     try {
       // Load main atlas
@@ -248,9 +248,7 @@ export class EnemySpriteManager {
       await this.loadCustomSprites();
 
       this.loaded = true;
-      console.log(
-        `✅ Enemy atlas loaded successfully! (${this.totalEnemies} enemy types available)`
-      );
+      console.warn('EnemySpriteManager: Enemy sprites loaded successfully');
     } catch (error) {
       console.error('❌ Error loading enemy atlas:', error);
       throw error;

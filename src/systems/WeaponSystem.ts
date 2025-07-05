@@ -1,9 +1,11 @@
 import { Container } from 'pixi.js';
-import { CollisionManager, CollisionGroup } from '../core/CollisionManager';
+import { CollisionManager } from '../core/CollisionManager';
+import { CollisionGroup } from '../types/CollisionTypes';
 import { Enemy } from '../entities/Enemy';
 import { Projectile } from '../entities/Projectile';
 import { Beam } from '../entities/Beam';
 import { WaveSpawner } from './WaveSpawner';
+import { EventBusImpl } from '../events/EventBus';
 
 // Simple interface for player objects that have a position
 interface PlayerLike {
@@ -55,9 +57,10 @@ export class WeaponSystem {
   private collisionManager: CollisionManager;
   private player: PlayerLike;
   private enemySpawner: WaveSpawner;
+  private eventBus: EventBusImpl;
 
   // Track recent beam hits to prevent multiple hits per second
-  private recentBeamHits: Map<any, number> = new Map();
+  private recentBeamHits: Map<EntityId, number> = new Map();
 
   // Multiple weapons system
   private weapons: Map<WeaponType, WeaponConfig> = new Map();
@@ -80,12 +83,14 @@ export class WeaponSystem {
     gameContainer: Container,
     collisionManager: CollisionManager,
     player: PlayerLike,
-    enemySpawner: WaveSpawner
+    enemySpawner: WaveSpawner,
+    eventBus: EventBusImpl
   ) {
     this.gameContainer = gameContainer;
     this.collisionManager = collisionManager;
     this.player = player;
     this.enemySpawner = enemySpawner;
+    this.eventBus = eventBus;
     this.initializeWeapons();
   }
 
@@ -226,16 +231,17 @@ export class WeaponSystem {
   private fireWeapon(weaponType: WeaponType): void {
     const weapon = this.weapons.get(weaponType);
     if (!weapon) {
-      console.log(`⚠️ Weapon ${weaponType} not found`);
+      console.warn(`Weapon ${weaponType} not found`);
       return;
     }
 
     // Check if weapon has been leveled up (unlocked weapons should be level 1+)
     if (weapon.currentLevel <= 0) {
-      console.log(`⚠️ Weapon ${weaponType} not leveled up (level ${weapon.currentLevel})`);
+      console.warn(`Weapon ${weaponType} not leveled up (level ${weapon.currentLevel})`);
       return;
     }
 
+    console.warn('WeaponSystem: Processing weapon...');
     console.log(`🔫 Firing ${weaponType} (level ${weapon.currentLevel})`);
 
     switch (weaponType) {
@@ -262,9 +268,10 @@ export class WeaponSystem {
       case WeaponType.BIBLE:
       case WeaponType.GARLIC:
       case WeaponType.HOLY_WATER:
-        console.log(`Weapon ${weaponType} is disabled (no art assets)`);
+        console.warn(`Weapon ${weaponType} is disabled (no art assets)`);
         break;
     }
+    console.warn('WeaponSystem: Weapon processed successfully');
   }
 
   /**
@@ -291,6 +298,12 @@ export class WeaponSystem {
     );
 
     this.setupProjectile(projectile);
+    
+    // Emit audio event for fireball launch
+    this.eventBus.emitEvent('weapon:fireball_launched', {
+      weaponType: 'fireball',
+      position: { x: playerPos.x, y: playerPos.y }
+    });
   }
 
   /**
@@ -616,7 +629,7 @@ export class WeaponSystem {
     // this.collisionManager.addEntity(beam)
 
     // Set up callbacks
-    beam.onHitTarget = (target: any) => {
+    beam.onHitTarget = (target: Entity) => {
       this.handleBeamHit(beam, target);
     };
 
@@ -628,7 +641,7 @@ export class WeaponSystem {
     this.totalShotsFired++;
   }
 
-  private handleBeamHit(beam: Beam, target: any): void {
+  private handleBeamHit(beam: Beam, target: Entity): void {
     // Handle beam hitting a target
     if (target.collisionGroup === CollisionGroup.ENEMY) {
       const enemy = target as Enemy;
@@ -831,7 +844,7 @@ export class WeaponSystem {
   /**
    * Handle projectile hitting a target
    */
-  private handleProjectileHit(projectile: Projectile, target: any): void {
+  private handleProjectileHit(projectile: Projectile, target: Entity): void {
     // Deal damage to the target
     if (target.takeDamage && typeof target.takeDamage === 'function') {
       const killed = target.takeDamage(projectile.projectileDamage);
@@ -841,6 +854,12 @@ export class WeaponSystem {
     }
 
     this.totalHits++;
+    
+    // Emit audio event for weapon hit
+    this.eventBus.emitEvent('weapon:fireball_hit', {
+      weaponType: projectile.projectileType || 'fireball',
+      position: { x: projectile.sprite.x, y: projectile.sprite.y }
+    });
   }
 
   /**
@@ -950,7 +969,7 @@ export class WeaponSystem {
         }
         beam.destroy();
       } catch (error) {
-        console.log('Error clearing beam:', error);
+        console.error('Error clearing beam:', error);
       }
     }
     this.beams = [];
@@ -1031,7 +1050,7 @@ export class WeaponSystem {
   /**
    * Precise beam-enemy collision detection
    */
-  private isEnemyInBeamPath(beam: Beam, enemy: any): boolean {
+  private isEnemyInBeamPath(beam: Beam, enemy: Entity): boolean {
     // Validate inputs - check beam, sprite, and sprite's transform
     if (!beam || !beam.sprite || !enemy || !enemy.position) {
       return false;
@@ -1089,11 +1108,11 @@ export class WeaponSystem {
                 beam.sprite.parent.removeChild(beam.sprite);
               }
             } catch (error) {
-              console.log('Error removing beam from display:', error);
+              console.error('Error removing beam from display:', error);
             }
           }, 100);
         } catch (error) {
-          console.log('Error cleaning up inactive beam:', error);
+          console.error('Error cleaning up inactive beam:', error);
         }
       }
     }

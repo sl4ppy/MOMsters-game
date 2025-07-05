@@ -1,7 +1,9 @@
 import { Graphics, Sprite, DisplayObject } from 'pixi.js';
+import { Collidable, CollisionGroup } from '../types/CollisionTypes';
 import { InputManager } from '../core/InputManager';
-import { Collidable, CollisionGroup } from '../core/CollisionManager';
 import { Assets } from 'pixi.js';
+import { Entity } from '../types/EntityTypes';
+import { Enemy } from '../entities/Enemy';
 
 export class PlayerWithSprites implements Collidable {
   public sprite: DisplayObject;
@@ -38,7 +40,7 @@ export class PlayerWithSprites implements Collidable {
   }
 
   async init(): Promise<void> {
-    console.log('PlayerWithSprites initialized');
+    // console.log('PlayerWithSprites initialized');
     await this.loadSharkManSprite();
   }
 
@@ -49,9 +51,9 @@ export class PlayerWithSprites implements Collidable {
       this.bitmapSprite.width = 64;
       this.bitmapSprite.height = 64;
       this.bitmapSprite.anchor.set(0.5, 0.5);
-      console.log('✅ Shark-man sprite loaded and ready!');
-    } catch (error) {
-      console.warn('⚠️ Failed to load shark-man sprite, using graphics fallback:', error);
+      // console.log('✅ Shark-man sprite loaded and ready!');
+    } catch {
+      // Handle error silently
     }
   }
 
@@ -83,13 +85,13 @@ export class PlayerWithSprites implements Collidable {
 
     // Handle character switching
     if (inputManager.isKeyJustPressed('KeyC')) {
-      console.log('Switching to circle design...');
+      // console.log('Switching to circle design...');
       this.switchCharacterDesign('circle');
     } else if (inputManager.isKeyJustPressed('KeyH')) {
-      console.log('Switching to hexagon design...');
+      // console.log('Switching to hexagon design...');
       this.switchCharacterDesign('hexagon');
     } else if (inputManager.isKeyJustPressed('KeyS')) {
-      console.log('Switching to shark-man design...');
+      // console.log('Switching to shark-man design...');
       this.switchCharacterDesign('shark_man');
     }
 
@@ -125,7 +127,7 @@ export class PlayerWithSprites implements Collidable {
     if (design === 'shark_man' && this.bitmapSprite) {
       // Use the bitmap sprite
       this.sprite = this.bitmapSprite;
-      console.log('🎉 Using shark-man bitmap sprite!');
+      // console.log('🎉 Using shark-man bitmap sprite!');
     } else {
       // Use graphics sprite
       this.sprite = this.graphicsSprite;
@@ -260,27 +262,10 @@ export class PlayerWithSprites implements Collidable {
     return false;
   }
 
-  onCollision(other: Collidable): void {
-    switch (other.collisionGroup) {
-      case CollisionGroup.ENEMY:
-        if (this.invulnerabilityTimer <= 0) {
-          const enemy = other as any;
-          const damage = enemy.attackDamage || 10;
-
-          if (this.takeDamage(damage)) {
-            console.log('Player died!');
-            if (this.onPlayerDied) this.onPlayerDied();
-          } else {
-            console.log(`Player took ${damage} damage! Health: ${this.health}/${this.maxHealth}`);
-            if (this.onDamageTaken) this.onDamageTaken(damage);
-          }
-
-          this.invulnerabilityTimer = this.invulnerabilityDuration;
-        }
-        break;
-      case CollisionGroup.PICKUP:
-        console.log('Player collected pickup!');
-        break;
+  public onCollision(other: Entity): void {
+    if (other instanceof Enemy) {
+      const enemy = other as Enemy; // Cast to access enemy properties
+      this.takeDamage(enemy.damage);
     }
   }
 

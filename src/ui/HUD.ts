@@ -15,14 +15,17 @@ export class HUD {
   private healthBar!: Graphics;
   private healthBarBackground!: Graphics;
   private healthText!: Text;
-  private statsText!: Text;
-  private weaponStatsText!: Text;
+  private statsBlockText!: Text;
   private timeText!: Text;
   private damageOverlay!: Graphics;
   private xpBar!: Graphics;
   private xpBarBackground!: Graphics;
   private levelText!: Text;
   private xpText!: Text;
+  private muteButton!: Graphics;
+  private muteButtonText!: Text;
+  private muteButtonBackground!: Graphics;
+  private statsBlockBackground!: Graphics;
 
   private screenWidth: number;
   private screenHeight: number;
@@ -35,6 +38,10 @@ export class HUD {
   private survivalTime: number = 0;
 
   private currentWeaponNotification?: Text;
+
+  // Audio state
+  private isMuted: boolean = false;
+  private onMuteToggle?: (muted: boolean) => void;
 
   constructor(screenWidth: number, screenHeight: number) {
     this.container = new Container();
@@ -71,23 +78,25 @@ export class HUD {
     this.healthText.y = 20;
     this.container.addChild(this.healthText);
 
-    // Stats text (enemy count, etc.)
-    const statsTextStyle = new TextStyle({
+    // Stats block background
+    this.statsBlockBackground = new Graphics();
+    this.statsBlockBackground.beginFill(0x000000, 0.5);
+    this.statsBlockBackground.drawRoundedRect(15, 45, 320, 60, 8);
+    this.statsBlockBackground.endFill();
+    this.container.addChild(this.statsBlockBackground);
+    this.statsBlockBackground.zIndex = 1;
+
+    // Stats block text (multi-line)
+    const statsBlockTextStyle = new TextStyle({
       fontFamily: 'Arial',
       fontSize: 14,
       fill: 0xffffff,
     });
-
-    this.statsText = new Text('Enemies: 0', statsTextStyle);
-    this.statsText.x = 20;
-    this.statsText.y = 50;
-    this.container.addChild(this.statsText);
-
-    // Weapon stats text
-    this.weaponStatsText = new Text('Weapon: Ready', statsTextStyle);
-    this.weaponStatsText.x = 20;
-    this.weaponStatsText.y = 70;
-    this.container.addChild(this.weaponStatsText);
+    this.statsBlockText = new Text('', statsBlockTextStyle);
+    this.statsBlockText.x = 30;
+    this.statsBlockText.y = 55;
+    this.statsBlockText.zIndex = 2;
+    this.container.addChild(this.statsBlockText);
 
     // Survival time
     const timeTextStyle = new TextStyle({
@@ -148,8 +157,83 @@ export class HUD {
     this.damageOverlay.visible = false;
     this.container.addChild(this.damageOverlay);
 
+    // Create mute button
+    this.createMuteButton();
+
     // Make sure HUD is always on top
     this.container.zIndex = 1000;
+  }
+
+  private createMuteButton(): void {
+    // Mute button background
+    this.muteButtonBackground = new Graphics();
+    this.muteButtonBackground.beginFill(0x000000, 0.7);
+    this.muteButtonBackground.drawRoundedRect(0, 0, 50, 50, 8);
+    this.muteButtonBackground.endFill();
+    this.muteButtonBackground.x = this.screenWidth - 70;
+    this.muteButtonBackground.y = 20;
+    this.container.addChild(this.muteButtonBackground);
+
+    // Mute button icon background
+    this.muteButton = new Graphics();
+    this.muteButton.beginFill(0x333333, 0.8);
+    this.muteButton.drawRoundedRect(0, 0, 40, 40, 6);
+    this.muteButton.endFill();
+    this.muteButton.lineStyle(2, 0x666666, 0.5);
+    this.muteButton.drawRoundedRect(0, 0, 40, 40, 6);
+    this.muteButton.x = this.screenWidth - 65;
+    this.muteButton.y = 25;
+    this.container.addChild(this.muteButton);
+
+    // Mute button text (speaker icon)
+    const muteTextStyle = new TextStyle({
+      fontFamily: 'Arial',
+      fontSize: 20,
+      fill: 0xffffff,
+      fontWeight: 'bold',
+    });
+
+    this.muteButtonText = new Text('🔊', muteTextStyle);
+    this.muteButtonText.x = this.screenWidth - 55;
+    this.muteButtonText.y = 30;
+    this.container.addChild(this.muteButtonText);
+
+    // Create tooltip (initially hidden)
+    const tooltip = new Text('Click to mute/unmute audio (or press M)', {
+      fontFamily: 'Arial',
+      fontSize: 12,
+      fill: 0xffffff,
+      fontWeight: 'bold',
+    });
+    tooltip.x = this.screenWidth - 200;
+    tooltip.y = 75;
+    tooltip.visible = false;
+    this.container.addChild(tooltip);
+
+    // Make button interactive
+    this.muteButtonBackground.eventMode = 'static';
+    this.muteButtonBackground.cursor = 'pointer';
+    this.muteButtonBackground.on('pointerdown', () => this.toggleMute());
+    this.muteButtonBackground.on('pointerover', () => {
+      this.muteButtonBackground.tint = 0x666666;
+      tooltip.visible = true;
+    });
+    this.muteButtonBackground.on('pointerout', () => {
+      this.muteButtonBackground.tint = 0xffffff;
+      tooltip.visible = false;
+    });
+
+    this.muteButton.eventMode = 'static';
+    this.muteButton.cursor = 'pointer';
+    this.muteButton.on('pointerdown', () => this.toggleMute());
+    this.muteButton.on('pointerover', () => {
+      this.muteButton.tint = 0x666666;
+      tooltip.visible = true;
+    });
+    this.muteButton.on('pointerout', () => {
+      this.muteButton.tint = 0xffffff;
+      tooltip.visible = false;
+    });
   }
 
   /**
@@ -164,10 +248,7 @@ export class HUD {
   ): void {
     this.updateSurvivalTime(deltaTime);
     this.updateHealthBar(player);
-    this.updateStats(enemySpawner);
-    if (weaponSystem) {
-      this.updateWeaponStats(weaponSystem);
-    }
+    this.updateStats(enemySpawner, weaponSystem);
     if (levelingSystem) {
       this.updateXPBar(levelingSystem);
     }
@@ -214,28 +295,33 @@ export class HUD {
     }
   }
 
-  private updateStats(enemySpawner: WaveSpawner): void {
-    const stats = enemySpawner.getStats();
+  private updateStats(enemySpawner: WaveSpawner, weaponSystem?: WeaponSystem): void {
+    // Get wave info
     const waveInfo = enemySpawner.getWaveInfo();
-    const progressionInfo = enemySpawner.getProgressionInfo();
-
-    // Format wave progress as percentage
-    const waveProgress = Math.round(waveInfo.waveProgress * 100);
-
-    // Format time remaining
-    const timeRemaining = Math.max(0, waveInfo.timeRemaining);
-    const minutes = Math.floor(timeRemaining);
-    const seconds = Math.floor((timeRemaining % 1) * 60);
-
-    this.statsText.text =
-      `Wave ${waveInfo.currentWave}/${enemySpawner.getTotalWaves()}: ${waveInfo.waveName} (${waveProgress}%)\n` +
-      `Time: ${minutes}:${seconds.toString().padStart(2, '0')} | Event: ${waveInfo.event}\n` +
-      `Enemies: ${stats.count}/${stats.maxEnemies} | Spawn Rate: ${stats.spawnRate.toFixed(1)}/s`;
-  }
-
-  private updateWeaponStats(weaponSystem: WeaponSystem): void {
-    const stats = weaponSystem.getStats();
-    this.weaponStatsText.text = `Weapon: ${stats.shotsFired} shots | ${stats.hits} hits | ${stats.accuracy}% accuracy`;
+    const stats = enemySpawner.getStats();
+    // const progression = enemySpawner.getProgressionInfo(); // Removed unused variable
+    // Get weapon stats
+    let weaponStatsLine = '';
+    if (weaponSystem) {
+      const weaponStats = weaponSystem.getStats();
+      weaponStatsLine = `Weapon: ${weaponStats.shotsFired} shots | ${weaponStats.hits} hits | ${weaponStats.accuracy}% accuracy`;
+    }
+    // Compose all stats into a single multi-line string
+    const statsLines = [
+      `Wave ${waveInfo.currentWave}/${enemySpawner.getTotalWaves()}: ${waveInfo.waveName} (${Math.round(waveInfo.waveProgress * 100)}%)`,
+      `Time: ${this.formatSurvivalTime(waveInfo.timeRemaining)} | Event: ${waveInfo.event}`,
+      weaponStatsLine,
+      `Enemies: ${stats.count}/${stats.maxEnemies} | Spawn Rate: ${stats.spawnRate.toFixed(1)}/s`
+    ];
+    this.statsBlockText.text = statsLines.filter(Boolean).join('\n');
+    // Dynamically resize background to fit text
+    const padding = 12;
+    const width = this.statsBlockText.width + padding * 2;
+    const height = this.statsBlockText.height + padding * 2;
+    this.statsBlockBackground.clear();
+    this.statsBlockBackground.beginFill(0x000000, 0.5);
+    this.statsBlockBackground.drawRoundedRect(20, 50, width, height, 8);
+    this.statsBlockBackground.endFill();
   }
 
   private updateXPBar(levelingSystem: LevelingSystem): void {
@@ -322,7 +408,6 @@ export class HUD {
   }
 
   showDebugModeNotification(): void {
-    console.log('🔧 DEBUG MODE ACTIVATED');
     // Create a temporary notification text
     const debugText = new Text('🔧 DEBUG MODE ACTIVATED', {
       fontFamily: 'Arial',
@@ -373,5 +458,65 @@ export class HUD {
         this.currentWeaponNotification = undefined;
       }
     }, 2000);
+  }
+
+  // Mute button functionality
+  toggleMute(): void {
+    this.isMuted = !this.isMuted;
+    
+    // Update button appearance
+    if (this.isMuted) {
+      this.muteButtonText.text = '🔇'; // Muted speaker
+      this.muteButton.tint = 0xff6666; // Red tint when muted
+    } else {
+      this.muteButtonText.text = '🔊'; // Unmuted speaker
+      this.muteButton.tint = 0xffffff; // Normal tint when unmuted
+    }
+    
+    // Call the callback if set
+    if (this.onMuteToggle) {
+      this.onMuteToggle(this.isMuted);
+    }
+    
+    // Show notification
+    this.showMuteNotification();
+  }
+
+  private showMuteNotification(): void {
+    const message = this.isMuted ? '🔇 Audio Muted' : '🔊 Audio Unmuted';
+    const color = this.isMuted ? 0xff6666 : 0x00ff00;
+    
+    const notification = new Text(message, {
+      fontFamily: 'Arial',
+      fontSize: 18,
+      fill: color,
+      fontWeight: 'bold',
+    });
+    
+    notification.x = this.screenWidth / 2 - 80;
+    notification.y = this.screenHeight / 2 - 100;
+    this.container.addChild(notification);
+    
+    // Remove after 2 seconds
+    setTimeout(() => {
+      if (this.container.children.includes(notification)) {
+        this.container.removeChild(notification);
+        notification.destroy();
+      }
+    }, 2000);
+  }
+
+  setMuteToggle(callback: (muted: boolean) => void): void {
+    this.onMuteToggle = callback;
+  }
+
+  isAudioMuted(): boolean {
+    return this.isMuted;
+  }
+
+  private formatSurvivalTime(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
 }

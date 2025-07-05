@@ -1,9 +1,8 @@
 import { Application } from 'pixi.js';
 import { Game } from './core/Game';
-import { testSharkManDisplay } from './test-shark-man';
 
 // Create and initialize the game
-async function init() {
+async function init(): Promise<void> {
   // Create the PixiJS application
   const app = new Application({
     width: 1024,
@@ -35,7 +34,6 @@ async function init() {
   const loadingText = document.getElementById('loadingText');
   if (loadingText) {
     loadingText.style.display = 'none';
-    console.log('Loading text hidden - game ready!');
   }
 }
 

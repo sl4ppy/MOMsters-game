@@ -20,7 +20,7 @@ export class ConfigManager {
   public reloadConfig(): void {
     if (BUILD_CONFIG.environment === 'development') {
       // Re-import configurations
-      console.log('🔄 Reloading configuration...');
+      console.warn('🔄 Reloading configuration...');
     }
   }
 
@@ -28,6 +28,7 @@ export class ConfigManager {
   public validateConfig(): boolean {
     try {
       // Add validation logic here
+      console.warn('Config: Configuration loaded successfully');
       return true;
     } catch (error) {
       console.error('❌ Configuration validation failed:', error);

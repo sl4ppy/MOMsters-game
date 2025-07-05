@@ -1,5 +1,5 @@
-import { Graphics, Sprite, Container, Rectangle, Texture } from 'pixi.js';
-import { Collidable, CollisionGroup } from '../core/CollisionManager';
+import { Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { Collidable, CollisionGroup } from '../types/CollisionTypes';
 
 export class Beam implements Collidable {
   public sprite: Container;
@@ -73,6 +73,7 @@ export class Beam implements Collidable {
     this.sprite.removeChildren();
 
     try {
+      console.warn('Beam: Creating beam...');
       // Load beam animation textures (Beam_full_01 through Beam_full_04)
       for (let i = 1; i <= 4; i++) {
         const paddedNum = i.toString().padStart(2, '0');
@@ -94,9 +95,7 @@ export class Beam implements Collidable {
       this.sprite.addChild(this.beamSprite);
 
       this.visualSprite = this.beamSprite;
-      console.log(
-        `Created rotating beam with animation frames, range: ${this.range}, collision radius: ${this.collisionRadius}, rotation speed: ${this.rotationDuration} seconds, offset: 16px`
-      );
+      console.warn('Beam: Beam created successfully');
     } catch (error) {
       // Fallback to graphics if sprites fail to load
       console.log('Beam sprites not found, using fallback graphics:', error);
@@ -139,7 +138,7 @@ export class Beam implements Collidable {
     if (!this._active) return;
 
     // Check if sprite is valid before updating
-    if (!this.sprite || (this.sprite as any).destroyed) {
+    if (!this.sprite || (this.sprite as { destroyed?: boolean }).destroyed) {
       this._active = false;
       return;
     }
@@ -172,7 +171,7 @@ export class Beam implements Collidable {
 
   private updateAppearance(): void {
     // Check if sprite is valid before accessing properties
-    if (!this.sprite || (this.sprite as any).destroyed) return;
+    if (!this.sprite || (this.sprite as { destroyed?: boolean }).destroyed) return;
 
     // Add pulsing effect to the beam
     const pulse = 0.8 + Math.sin(this.lifetime * 8) * 0.2;
@@ -234,9 +233,8 @@ export class Beam implements Collidable {
    * Handle collision with other objects
    * NOTE: Currently unused as we do manual collision detection in WeaponSystem
    */
-  onCollision(other: Collidable): void {
-    // This method is currently unused because we handle collision detection
-    // manually in the WeaponSystem for more precise control
+  onCollision(_other: Collidable): void {
+    // Beam collision is handled in WeaponSystem
   }
 
   private expire(): void {
@@ -251,7 +249,7 @@ export class Beam implements Collidable {
     this._active = false;
 
     // Add expiration visual effect only if sprite is valid
-    if (this.sprite && !(this.sprite as any).destroyed) {
+    if (this.sprite && !(this.sprite as { destroyed?: boolean }).destroyed) {
       this.sprite.alpha = 0.5;
       this.sprite.scale.set(1.2);
     }
@@ -261,40 +259,32 @@ export class Beam implements Collidable {
     }
   }
 
-  destroy(): void {
-    this._active = false;
-
-    // Clean up sprites safely
-
-    if (this.beamSprite && !(this.beamSprite as any).destroyed) {
-      try {
-        this.beamSprite.destroy();
-      } catch (error) {
-        console.log('Error destroying beam sprite:', error);
-      }
+  public destroy(): void {
+    if (this.sprite && !(this.sprite as { destroyed?: boolean }).destroyed) {
+      this.sprite.destroy();
+      this.sprite = null;
+    }
+    
+    if (this.beamSprite && !(this.beamSprite as { destroyed?: boolean }).destroyed) {
+      this.beamSprite.destroy();
       this.beamSprite = null;
     }
-
-    if (this.visualSprite && !(this.visualSprite as any).destroyed) {
-      try {
-        this.visualSprite.destroy();
-      } catch (error) {
-        console.log('Error destroying visual sprite:', error);
-      }
+    
+    if (this.visualSprite && !(this.visualSprite as { destroyed?: boolean }).destroyed) {
+      this.visualSprite.destroy();
       this.visualSprite = null;
     }
-
-    // Only destroy the container if it has a parent and is not destroyed
-    if (this.sprite && this.sprite.parent && !(this.sprite as any).destroyed) {
+    
+    if (this.sprite && this.sprite.parent && !(this.sprite as { destroyed?: boolean }).destroyed) {
       this.sprite.parent.removeChild(this.sprite);
     }
-
-    if (this.sprite && !(this.sprite as any).destroyed) {
-      try {
-        this.sprite.destroy();
-      } catch (error) {
-        console.log('Error destroying beam sprite container:', error);
-      }
+    
+    if (this.sprite && !(this.sprite as { destroyed?: boolean }).destroyed) {
+      this.sprite.destroy();
+    }
+    
+    if (this.sprite && !(this.sprite as { destroyed?: boolean }).destroyed) {
+      this.sprite.destroy();
     }
   }
 
@@ -320,7 +310,7 @@ export class Beam implements Collidable {
   updatePosition(playerX: number, playerY: number): void {
     this.playerX = playerX;
     this.playerY = playerY;
-    if (this.sprite && !(this.sprite as any).destroyed) {
+    if (this.sprite && !(this.sprite as { destroyed?: boolean }).destroyed) {
       this.sprite.x = playerX;
       this.sprite.y = playerY;
     }

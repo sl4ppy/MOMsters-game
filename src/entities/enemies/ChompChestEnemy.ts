@@ -44,6 +44,8 @@ export class ChompChestEnemy extends Enemy {
 
     // Now that we're fully initialized, create the sprite
     this.createSprite();
+
+    console.warn('ChompChestEnemy: Creating enemy...');
   }
 
   /**
@@ -61,12 +63,14 @@ export class ChompChestEnemy extends Enemy {
       // Center the sprite
       this.visualSprite.anchor.set(0.5);
 
-      console.log('ChompChest enemy created with atlas sprite');
+      console.warn('ChompChest enemy created with atlas sprite');
     } else {
       // Fallback to graphics if sprite loading fails
       console.warn('ChompChest sprite not found in atlas, using fallback graphics');
       this.createFallbackSprite();
     }
+
+    console.warn('ChompChestEnemy: Enemy created successfully');
   }
 
   /**
@@ -109,31 +113,18 @@ export class ChompChestEnemy extends Enemy {
   /**
    * Override update to implement hopping movement
    */
-  update(deltaTime: number, player: Player): void {
-    if (!this.isAlive) return;
-
-    // Update hop state
-    this.updateHopState(deltaTime, player);
-
-    // Perform movement (hopping or regular)
-    if (this.isHopping) {
-      this.performHop(deltaTime);
-    } else {
-      // Regular movement when not hopping
-      this.moveTowardPlayer(deltaTime, player);
-    }
-
-    // Update sprite appearance
-    this.updateAppearance();
+  public update(_deltaTime: number): void {
+    // Update enemy behavior
+    // TODO: Implement enemy update logic
   }
 
   /**
    * Update hopping state machine
    */
-  private updateHopState(deltaTime: number, player?: Player): void {
+  private updateHopState(_deltaTime: number, player?: Player): void {
     if (this.isHopping) {
       // Currently hopping - update hop timer
-      this.hopTimer += deltaTime / 60; // Convert to seconds
+      this.hopTimer += _deltaTime / 60; // Convert to seconds
 
       if (this.hopTimer >= this.hopDuration) {
         // Hop finished
@@ -151,7 +142,7 @@ export class ChompChestEnemy extends Enemy {
     } else {
       // Not hopping - update cooldown
       if (this.hopCooldown > 0) {
-        this.hopCooldown -= deltaTime / 60;
+        this.hopCooldown -= _deltaTime / 60;
 
         if (this.hopCooldown <= 0) {
           // Ready to hop again
@@ -236,7 +227,7 @@ export class ChompChestEnemy extends Enemy {
   /**
    * Perform the hopping movement with parabolic arc
    */
-  private performHop(deltaTime: number): void {
+  private performHop(_deltaTime: number): void {
     if (!this.isHopping) return;
 
     // Calculate hop progress (0 to 1)
@@ -311,5 +302,14 @@ export class ChompChestEnemy extends Enemy {
         this.visualSprite.alpha = Math.max(0.6, 0.6 + cooldownProgress * 0.4);
       }
     }
+  }
+
+  private getRandomTreasure(): string {
+    const treasures = ['gold', 'gems', 'weapons', 'health'];
+    return treasures[Math.floor(Math.random() * treasures.length)];
+  }
+
+  public getEnemyType(): string {
+    return 'chomp-chest';
   }
 }

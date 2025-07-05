@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOMsters Game - Mute Button Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-info {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-steps {
+            background: #444;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .test-steps h3 {
+            margin-top: 0;
+            color: #00ff00;
+        }
+        .test-steps ol {
+            margin: 10px 0;
+        }
+        .test-steps li {
+            margin: 8px 0;
+        }
+        .key {
+            background: #555;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #005a9e;
+        }
+        .status {
+            background: #2d2d2d;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { color: #00ff00; }
+        .warning { color: #ffff00; }
+        .error { color: #ff6666; }
+    </style>
+</head>
+<body>
+    <h1>🎮 MOMsters Game - Mute Button Test</h1>
+    
+    <div class="test-info">
+        <h2>🔇 Mute Button Implementation</h2>
+        <p>This test verifies that the mute button functionality works correctly in the game.</p>
+    </div>
+
+    <div class="test-steps">
+        <h3>✅ What's Been Implemented:</h3>
+        <ul>
+            <li><strong>Visual Mute Button:</strong> Located in top-right corner of HUD</li>
+            <li><strong>Speaker Icon:</strong> 🔊 (unmuted) / 🔇 (muted)</li>
+            <li><strong>Color Feedback:</strong> Red tint when muted, normal when unmuted</li>
+            <li><strong>Hover Tooltip:</strong> Shows "Click to mute/unmute audio (or press M)"</li>
+            <li><strong>Keyboard Shortcut:</strong> Press <span class="key">M</span> key to toggle</li>
+            <li><strong>Visual Notification:</strong> Shows "Audio Muted/Unmuted" message</li>
+            <li><strong>Audio Integration:</strong> Connected to AudioManager volume control</li>
+        </ul>
+    </div>
+
+    <div class="test-steps">
+        <h3>🧪 Testing Instructions:</h3>
+        <ol>
+            <li><strong>Open the game:</strong> Go to <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+            <li><strong>Start the game:</strong> Click "Start Game" on the title screen</li>
+            <li><strong>Look for the mute button:</strong> Top-right corner, speaker icon 🔊</li>
+            <li><strong>Test button click:</strong> Click the mute button and verify:
+                <ul>
+                    <li>Icon changes to 🔇</li>
+                    <li>Button gets red tint</li>
+                    <li>"Audio Muted" notification appears</li>
+                    <li>Sound stops playing</li>
+                </ul>
+            </li>
+            <li><strong>Test keyboard shortcut:</strong> Press <span class="key">M</span> key and verify same behavior</li>
+            <li><strong>Test unmute:</strong> Click button or press <span class="key">M</span> again and verify:
+                <ul>
+                    <li>Icon changes back to 🔊</li>
+                    <li>Button returns to normal color</li>
+                    <li>"Audio Unmuted" notification appears</li>
+                    <li>Sound resumes playing</li>
+                </ul>
+            </li>
+            <li><strong>Test hover tooltip:</strong> Hover over the button to see the help text</li>
+        </ol>
+    </div>
+
+    <div class="test-steps">
+        <h3>🎵 Audio Events to Listen For:</h3>
+        <ul>
+            <li><strong>Player Movement:</strong> Should hear movement sounds when moving</li>
+            <li><strong>Weapon Firing:</strong> Should hear weapon sounds when attacking</li>
+            <li><strong>Enemy Deaths:</strong> Should hear enemy death sounds</li>
+            <li><strong>XP Pickup:</strong> Should hear XP collection sounds</li>
+            <li><strong>Level Up:</strong> Should hear level up sound</li>
+        </ul>
+    </div>
+
+    <div class="status">
+        <h3>📋 Test Checklist:</h3>
+        <div id="checklist">
+            <div>☐ Game loads successfully</div>
+            <div>☐ Mute button is visible in HUD</div>
+            <div>☐ Button click toggles mute state</div>
+            <div>☐ M key toggles mute state</div>
+            <div>☐ Visual feedback works (icon/color changes)</div>
+            <div>☐ Notification messages appear</div>
+            <div>☐ Hover tooltip shows</div>
+            <div>☐ Audio actually stops/starts</div>
+        </div>
+    </div>
+
+    <div class="test-steps">
+        <h3>🔧 Debug Information:</h3>
+        <p>Open browser console (F12) to see debug messages:</p>
+        <ul>
+            <li><code>Audio muted</code> / <code>Audio unmuted</code> messages</li>
+            <li><code>AudioManager initialized</code> message</li>
+            <li><code>Fallback sound generated</code> messages</li>
+        </ul>
+    </div>
+
+    <div class="status">
+        <h3>🚀 Ready for Phase 4?</h3>
+        <p>Once you've confirmed the mute button works correctly, we can proceed to Phase 4 of the modernization plan, which includes:</p>
+        <ul>
+            <li>Advanced UI components (settings menu, pause screen)</li>
+            <li>Particle effects system</li>
+            <li>Advanced enemy AI and behaviors</li>
+            <li>Power-up and item systems</li>
+            <li>Multiplayer preparation</li>
+        </ul>
+    </div>
+
+    <script>
+        // Add some interactivity to the test page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎮 Mute Button Test Page Loaded');
+            console.log('📋 Follow the testing instructions above to verify functionality');
+            
+            // Add click handlers to make the page more interactive
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('Button clicked:', this.textContent);
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

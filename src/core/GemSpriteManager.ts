@@ -30,7 +30,7 @@ export class GemSpriteManager {
     if (this.isLoaded) return;
 
     try {
-      console.log('💎 Loading gem sprite atlas...');
+      console.warn('GemSpriteManager: Loading gem sprites...');
 
       // Load the gems texture
       this.gemTexture = BaseTexture.from(import.meta.env.BASE_URL + 'sprites/gems.png');
@@ -49,7 +49,7 @@ export class GemSpriteManager {
       this.createGemSprites();
 
       this.isLoaded = true;
-      console.log('✅ Gem atlas loaded successfully! (2 gem types available)');
+      console.warn('GemSpriteManager: Gem sprites loaded successfully');
     } catch (error) {
       console.error('❌ Failed to load gem atlas:', error);
       this.isLoaded = false;

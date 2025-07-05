@@ -19,6 +19,7 @@ export class TitleScreen {
   private animationTime: number = 0;
 
   constructor(screenWidth: number, screenHeight: number) {
+    console.warn('TitleScreen: Initializing...');
     this.container = new Container();
     this.container.visible = true;
 
@@ -32,6 +33,7 @@ export class TitleScreen {
     // Center everything
     this.container.x = screenWidth / 2;
     this.container.y = screenHeight / 2;
+    console.warn('TitleScreen: Initialized successfully');
   }
 
   private createBackground(screenWidth: number, screenHeight: number): void {
@@ -191,7 +193,7 @@ How long can you survive?`;
    */
   update(deltaTime: number, inputManager: InputManager): void {
     if (!this.isVisible) {
-      console.log('ERROR: TitleScreen update called but screen is not visible!');
+      console.error('TitleScreen update called but screen is not visible!');
       return;
     }
 
@@ -244,12 +246,9 @@ How long can you survive?`;
   }
 
   private startGame(): void {
-    console.log('TitleScreen startGame() called');
+    console.error('onStartGame callback is not set!');
     if (this.onStartGame) {
-      console.log('Calling onStartGame callback');
       this.onStartGame();
-    } else {
-      console.log('ERROR: onStartGame callback is not set!');
     }
     this.hide();
   }
